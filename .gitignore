@@ -1,2 +1,5 @@
 # BigWigs packager output
 .release/
+
+# Git worktrees
+.worktrees/

@@ -138,6 +138,9 @@ Settings = {
             SetValueChangedCallback = function(self, fn)
                 LOG("  -> SetValueChangedCallback registered for " .. tostring(variable))
             end,
+            SetEnabled = function(self, enabled)
+                LOG("  -> SetEnabled(" .. tostring(enabled) .. ") for " .. tostring(variable))
+            end,
         }
     end,
 
@@ -146,15 +149,30 @@ Settings = {
         settingsRegistered[variable] = true
         return {
             SetValueChangedCallback = function(self, fn) end,
+            SetEnabled = function(self, enabled)
+                LOG("  -> SetEnabled(" .. tostring(enabled) .. ") for " .. tostring(variable))
+            end,
         }
     end,
 
     CreateCheckbox = function(category, setting, tooltip)
         LOG("CreateCheckbox")
+        local variable = setting and setting.variable or "?"
+        return {
+            SetEnabled = function(self, enabled)
+                LOG("  -> Initializer:SetEnabled(" .. tostring(enabled) .. ") for " .. tostring(variable))
+            end,
+        }
     end,
 
     CreateSlider = function(category, setting, options, tooltip)
         LOG("CreateSlider")
+        local variable = setting and setting.variable or "?"
+        return {
+            SetEnabled = function(self, enabled)
+                LOG("  -> Initializer:SetEnabled(" .. tostring(enabled) .. ") for " .. tostring(variable))
+            end,
+        }
     end,
 
     CreateSliderOptions = function(min, max, step)
@@ -328,7 +346,7 @@ local checks = {
     {"breakInterval",   8400},
     {"disableInCombat", true},
     {"printToChat",     true},
-    {"dismissOnClick",  true},
+    {"autoDismiss",     true},
 }
 
 local pass = 0
