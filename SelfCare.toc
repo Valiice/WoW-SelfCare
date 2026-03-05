@@ -1,8 +1,13 @@
-## Interface: 110100
+## Interface: 120001
 ## Title: SelfCare
 ## Notes: Reminds you to hydrate, check your posture, and take breaks.
 ## Author: ValentinClaes
 ## Version: 1.0.0
 ## SavedVariables: SelfCareDB
+## X-Curse-Project-ID: YOUR_PROJECT_ID
 
-SelfCare.lua
+src/Core.lua
+src/Notifications.lua
+src/Timers.lua
+src/Settings.lua
+src/Init.lua

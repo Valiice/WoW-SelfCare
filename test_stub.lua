@@ -1,6 +1,7 @@
 -- =============================================================================
 -- test_stub.lua
--- Stubs for WoW API so we can load SelfCare.lua in a plain Lua 5.1 interpreter.
+-- Stubs for WoW API so we can load the SelfCare addon files in a plain
+-- Lua 5.1 interpreter.
 -- Run: lua test_stub.lua
 -- =============================================================================
 
@@ -120,7 +121,14 @@ Settings = {
 
     RegisterVerticalLayoutCategory = function(name)
         LOG("Settings.RegisterVerticalLayoutCategory: " .. name)
-        return { name = name }
+        local layout = {
+            AddInitializer = function(self, initializer)
+                LOG("Layout:AddInitializer")
+                return initializer
+            end,
+        }
+        local cat = { name = name }
+        return cat, layout
     end,
 
     RegisterAddOnSetting = function(category, variable, variableKey, variableTbl, varType, displayName, default)
@@ -172,29 +180,75 @@ MinimalSliderWithSteppersMixin = {
     Label = { Right = 1 }
 }
 
+-- Blizzard global — creates a layout-compatible button element initializer
+function CreateSettingsButtonInitializer(labelText, buttonText, onClick, tooltip, enabled)
+    LOG("CreateSettingsButtonInitializer: " .. tostring(buttonText))
+    return { labelText = labelText, buttonText = buttonText }
+end
+
+function CreateSettingsListSectionHeaderInitializer(text)
+    LOG("CreateSettingsListSectionHeaderInitializer: " .. tostring(text))
+    return { text = text }
+end
+
 -- ---------------------------------------------------------------------------
 -- Slash command stubs
 -- ---------------------------------------------------------------------------
 SlashCmdList = SlashCmdList or {}
 
 -- ---------------------------------------------------------------------------
--- Load the addon
+-- Load addon files in TOC order
 -- ---------------------------------------------------------------------------
-print("=== Loading SelfCare.lua ===")
-local ok, err = pcall(dofile, "SelfCare.lua")
+local addonFiles = {
+    "src/Core.lua",
+    "src/Notifications.lua",
+    "src/Timers.lua",
+    "src/Settings.lua",
+    "src/Init.lua",
+}
 
-if not ok then
-    print("\n*** LOAD ERROR ***")
-    print(err)
-    os.exit(1)
+for _, filename in ipairs(addonFiles) do
+    print("=== Loading " .. filename .. " ===")
+    local ok, err = pcall(dofile, filename)
+    if not ok then
+        print("\n*** LOAD ERROR in " .. filename .. " ***")
+        print(err)
+        os.exit(1)
+    end
+    print("=== " .. filename .. " OK ===\n")
 end
 
-print("=== Load OK ===\n")
+-- ---------------------------------------------------------------------------
+-- Namespace integrity check
+-- ---------------------------------------------------------------------------
+print("--- Namespace integrity check ---")
+local expectedKeys = {
+    "DEFAULTS", "ALERTS",
+    "Print", "ApplyDefaults", "FindAlertByKey", "EnabledKey", "IntervalKey",
+    "ShowNotif", "HideNotif",
+    "StartTimer", "StartAllTimers", "StopAllTimers", "FlushPending", "RestartTimers",
+    "BuildSettingsPanel", "Category",
+    "TestAlert", "TestAllAlerts",
+}
+local nsFail = 0
+for _, k in ipairs(expectedKeys) do
+    -- Category is set during BuildSettingsPanel (after ADDON_LOADED), skip here
+    if k ~= "Category" and SelfCare[k] == nil then
+        print("  MISSING: SelfCare." .. k)
+        nsFail = nsFail + 1
+    end
+end
+if nsFail == 0 then
+    print("  All namespace keys present.")
+else
+    print(string.format("  %d missing key(s).", nsFail))
+    os.exit(1)
+end
 
 -- ---------------------------------------------------------------------------
 -- Simulate ADDON_LOADED event
 -- ---------------------------------------------------------------------------
-print("--- Simulating ADDON_LOADED ---")
+print("\n--- Simulating ADDON_LOADED ---")
 local addonFrame = SelfCareAddonFrame
 if addonFrame and addonFrame._FireEvent then
     addonFrame:_FireEvent("ADDON_LOADED", "SelfCare")
@@ -202,10 +256,17 @@ else
     print("WARNING: Could not find SelfCareAddonFrame")
 end
 
+-- After ADDON_LOADED, SelfCare.Category should be set
+if SelfCare.Category == nil then
+    print("FAIL: SelfCare.Category is nil after BuildSettingsPanel")
+    os.exit(1)
+end
+print("  SelfCare.Category set OK")
+
 -- ---------------------------------------------------------------------------
 -- Simulate PLAYER_LOGIN (starts timers)
 -- ---------------------------------------------------------------------------
-print("--- Simulating PLAYER_LOGIN ---")
+print("\n--- Simulating PLAYER_LOGIN ---")
 if addonFrame and addonFrame._FireEvent then
     addonFrame:_FireEvent("PLAYER_LOGIN")
 end
@@ -231,6 +292,27 @@ end
 print("\n--- Testing SelfCare_TestAlert('invalid') ---")
 if SelfCare_TestAlert then
     SelfCare_TestAlert("invalid")
+end
+
+-- ---------------------------------------------------------------------------
+-- Backwards-compat alias assertions
+-- ---------------------------------------------------------------------------
+print("\n--- Backwards-compat alias checks ---")
+local aliases = {
+    "SelfCare_ShowNotif",
+    "SelfCare_HideNotif",
+    "SelfCare_RestartTimers",
+    "SelfCare_TestAlert",
+}
+local aliasFail = 0
+for _, name in ipairs(aliases) do
+    if _G[name] == nil then
+        print("  MISSING global alias: " .. name)
+        aliasFail = aliasFail + 1
+    end
+end
+if aliasFail == 0 then
+    print("  All global aliases present.")
 end
 
 -- ---------------------------------------------------------------------------
@@ -271,4 +353,6 @@ for i, msg in ipairs(log) do
     print(string.format("  [%02d] %s", i, msg))
 end
 
-print(string.format("\n=== RESULT: %s ===", fail == 0 and "ALL TESTS PASSED" or (fail .. " FAILURES")))
+local totalFail = fail + aliasFail + nsFail
+print(string.format("\n=== RESULT: %s ===", totalFail == 0 and "ALL TESTS PASSED" or (totalFail .. " FAILURES")))
+if totalFail > 0 then os.exit(1) end

@@ -1,0 +1,8 @@
+enable-nolib-creation: no
+
+ignore:
+  - test_stub.lua
+  - CLAUDE.md
+  - README.md
+  - .github
+  - .claude
