@@ -4,5 +4,6 @@ ignore:
   - test_stub.lua
   - CLAUDE.md
   - README.md
+  - curseforge-description.md
   - .github
   - .claude
