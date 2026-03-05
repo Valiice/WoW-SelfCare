@@ -49,17 +49,58 @@ All settings are accessible from the in-game Interface Options panel:
 
 ## Development
 
-You can test the addon offline without WoW using Lua 5.1:
+### Smoke test (fast, no dependencies)
 
 ```bash
-# Install Lua (Windows, via Chocolatey)
+# Install Lua 5.1 (Windows, via Chocolatey)
 choco install lua
 
-# Run the test suite
+# Run the smoke test — loads all files, fires events, checks DB defaults
 "C:\Program Files (x86)\Lua\5.1\lua.exe" test_stub.lua
 ```
 
-The test stub mocks the WoW API and verifies that the addon loads correctly, events fire properly, and all defaults are applied.
+### Unit tests with busted
+
+Full BDD-style tests with mocks and spies live in `spec/`.
+
+**Linux / macOS (LuaRocks 3.x):**
+
+```bash
+luarocks install busted
+busted                  # TAP output (configured in .busted)
+```
+
+**Windows (Lua 5.1 via Chocolatey, LuaRocks 2.x):**
+
+The choco `lua` package ships LuaRocks 2.0.x which is too old for busted.
+Use the provided helper scripts instead:
+
+```bash
+# One-time setup: downloads deps into lua_modules/
+bash scripts/install-test-deps.sh
+
+# Run all tests
+bash scripts/run-tests.sh
+
+# TAP output
+bash scripts/run-tests.sh --tap
+```
+
+Tests are organised as:
+
+| File | What it covers |
+|------|---------------|
+| `spec/core_spec.lua` | DEFAULTS, ALERTS, ApplyDefaults, FindAlertByKey, key helpers |
+| `spec/timers_spec.lua` | Timer creation, combat/cutscene deferral, FlushPending, RestartTimers |
+| `spec/notifications_spec.lua` | ShowNotif/HideNotif, sound, chat print, auto-dismiss timer |
+| `spec/init_spec.lua` | ADDON_LOADED → PLAYER_LOGIN event flow, slash commands, TestAlert |
+
+### Continuous Integration
+
+GitHub Actions runs on every push and pull request to `master`:
+- Lua syntax lint on all `.lua` files
+- Full `busted` test suite
+- `test_stub.lua` smoke test
 
 ## License
 
