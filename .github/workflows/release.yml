@@ -12,28 +12,55 @@ on:
         default: '1.0.0'
 
 permissions:
-  contents: write   # needed to create GitHub Releases
+  contents: write
 
 jobs:
-  release:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag_name: ${{ steps.version.outputs.tag_name }}
+    steps:
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "tag_name=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            VERSION="${{ github.ref_name }}"
+            echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
+            echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+  test:
+    needs: prepare
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # full history for changelog
+          fetch-depth: 0
+
+      - name: Run offline tests
+        run: |
+          sudo apt-get install -y lua5.1 -q
+          lua5.1 test_stub.lua
+
+  release:
+    needs: [ prepare, test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Create and push tag (manual trigger only)
         if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git tag v${{ github.event.inputs.version }}
-          git push origin v${{ github.event.inputs.version }}
-
-      - name: Run offline tests
-        run: |
-          sudo apt-get install -y lua5.1 -q
-          lua5.1 test_stub.lua
+          git tag ${{ needs.prepare.outputs.tag_name }}
+          git push origin ${{ needs.prepare.outputs.tag_name }}
 
       - name: Package and upload
         uses: BigWigsMods/packager@v2
