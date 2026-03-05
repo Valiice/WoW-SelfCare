@@ -4,7 +4,7 @@
 ## Author: ValentinClaes
 ## Version: 1.0.0
 ## SavedVariables: SelfCareDB
-## X-Curse-Project-ID: YOUR_PROJECT_ID
+## X-Curse-Project-ID: 1478575
 
 src/Core.lua
 src/Notifications.lua
