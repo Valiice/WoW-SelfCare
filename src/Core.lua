@@ -26,8 +26,8 @@ SelfCare.DEFAULTS = {
     disableInCombat   = true,
     disableInCutscene = true,
     printToChat       = true,
-    dismissOnClick    = true,        -- true = click to dismiss; false = auto-dismiss after 10s
-    dismissDelay      = 10,          -- seconds before auto-dismiss (when dismissOnClick = false)
+    autoDismiss       = true,        -- true = auto-dismiss after dismissDelay seconds; click always dismisses
+    dismissDelay      = 10,          -- seconds before auto-dismiss (when autoDismiss = true)
 }
 
 -- ---------------------------------------------------------------------------

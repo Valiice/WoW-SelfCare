@@ -1,12 +1,14 @@
 -- =============================================================================
 -- Notifications.lua
--- Single reusable notification frame — fades in/out, click-to-dismiss or
--- auto-dismiss. Private frame state stays in file-level locals.
+-- Single reusable notification frame — fades in/out, click always dismisses,
+-- optionally auto-dismisses after a countdown. Private frame state stays in
+-- file-level locals.
 -- =============================================================================
 
-local notifFrame        -- the shared Button frame
-local notifDismissTimer -- auto-dismiss timer handle
-local notifHideTimer    -- the 0.31s fade-then-hide timer
+local notifFrame           -- the shared Button frame
+local notifDismissTimer    -- auto-dismiss timer handle
+local notifHideTimer       -- the 0.31s fade-then-hide timer
+local notifCountdownTicker -- 1s ticker for live countdown display
 
 local function BuildNotifFrame()
     if notifFrame then return end
@@ -43,17 +45,15 @@ local function BuildNotifFrame()
     text:SetTextColor(1, 1, 1, 1)
     f.text = text
 
-    -- Subtle "click to dismiss" hint below the main text
+    -- Subtle dismiss hint below the main text
     local hint = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     hint:SetPoint("TOP", text, "BOTTOM", 0, -4)
     hint:SetText("Click to dismiss")
     f.hint = hint
 
-    -- Click to dismiss
+    -- Click always dismisses
     f:SetScript("OnClick", function()
-        if SelfCareDB.dismissOnClick then
-            SelfCare.HideNotif()
-        end
+        SelfCare.HideNotif()
     end)
 
     f:Hide()
@@ -62,17 +62,11 @@ end
 
 function SelfCare.ShowNotif(alert)
     BuildNotifFrame()
-    if notifHideTimer    then notifHideTimer:Cancel();    notifHideTimer    = nil end
-    if notifDismissTimer then notifDismissTimer:Cancel(); notifDismissTimer = nil end
+    if notifHideTimer       then notifHideTimer:Cancel();       notifHideTimer       = nil end
+    if notifDismissTimer    then notifDismissTimer:Cancel();    notifDismissTimer    = nil end
+    if notifCountdownTicker then notifCountdownTicker:Cancel(); notifCountdownTicker = nil end
 
     notifFrame.text:SetText(alert.message)
-
-    -- Hint: mention click-to-dismiss if enabled, always show the auto-dismiss countdown
-    if SelfCareDB.dismissOnClick then
-        notifFrame.hint:SetText(string.format("Click to dismiss · %ds", SelfCareDB.dismissDelay))
-    else
-        notifFrame.hint:SetText(string.format("Dismisses in %ds", SelfCareDB.dismissDelay))
-    end
 
     notifFrame:Show()
     notifFrame:SetAlpha(0)
@@ -86,15 +80,29 @@ function SelfCare.ShowNotif(alert)
     -- Play a pleasant UI sound
     PlaySound(808)
 
-    -- Always auto-dismiss after the delay; dismissOnClick just adds click as an extra way out
-    notifDismissTimer = C_Timer.NewTimer(SelfCareDB.dismissDelay, function()
-        SelfCare.HideNotif()
-    end)
+    if SelfCareDB.autoDismiss then
+        -- Live countdown: tick every second, updating hint text
+        local remaining = SelfCareDB.dismissDelay
+        notifFrame.hint:SetText(string.format("Dismisses in %ds", remaining))
+        notifCountdownTicker = C_Timer.NewTicker(1, function()
+            remaining = remaining - 1
+            if remaining > 0 then
+                notifFrame.hint:SetText(string.format("Dismisses in %ds", remaining))
+            end
+        end)
+        -- Auto-dismiss after the full delay
+        notifDismissTimer = C_Timer.NewTimer(SelfCareDB.dismissDelay, function()
+            SelfCare.HideNotif()
+        end)
+    else
+        notifFrame.hint:SetText("Click to dismiss")
+    end
 end
 
 function SelfCare.HideNotif()
-    if notifHideTimer    then notifHideTimer:Cancel();    notifHideTimer    = nil end
-    if notifDismissTimer then notifDismissTimer:Cancel(); notifDismissTimer = nil end
+    if notifHideTimer       then notifHideTimer:Cancel();       notifHideTimer       = nil end
+    if notifDismissTimer    then notifDismissTimer:Cancel();    notifDismissTimer    = nil end
+    if notifCountdownTicker then notifCountdownTicker:Cancel(); notifCountdownTicker = nil end
     if notifFrame and notifFrame:IsShown() then
         UIFrameFadeOut(notifFrame, 0.3, 1, 0)
         notifHideTimer = C_Timer.NewTimer(0.31, function()

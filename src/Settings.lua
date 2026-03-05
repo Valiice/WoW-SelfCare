@@ -12,6 +12,19 @@ function SelfCare.BuildSettingsPanel()
     local DEFAULTS = SelfCare.DEFAULTS
 
     -- -----------------------------------------------------------------------
+    -- Helper: enable/disable an initializer. SetEnabled may not exist in all
+    -- WoW versions; fall back to setting data.enabled directly (same effect).
+    -- -----------------------------------------------------------------------
+    local function SetInitEnabled(initializer, enabled)
+        if not initializer then return end
+        if initializer.SetEnabled then
+            initializer:SetEnabled(enabled)
+        elseif initializer.data then
+            initializer.data.enabled = enabled
+        end
+    end
+
+    -- -----------------------------------------------------------------------
     -- Helper: checkbox backed directly by SelfCareDB[varKey]
     -- -----------------------------------------------------------------------
     local function MakeCheckbox(varKey, displayName, tooltip, onChanged)
@@ -64,15 +77,16 @@ function SelfCare.BuildSettingsPanel()
             end
         )
 
-        Settings.CreateSlider(category, setting, sliderOptions, tooltip)
-        return setting
+        local initializer = Settings.CreateSlider(category, setting, sliderOptions, tooltip)
+        return initializer
     end
 
     -- -----------------------------------------------------------------------
     -- GLOBAL OPTIONS
     -- -----------------------------------------------------------------------
     MakeCheckbox("disableInCombat",   "Disable during combat",
-        "Hold alerts while you are in combat and show them after combat ends.")
+        "Timers keep running during combat. Alerts that fire while in combat are queued "
+        .. "and shown immediately when combat ends.")
 
     MakeCheckbox("disableInCutscene", "Disable during cutscenes",
         "Hold alerts during in-game cinematics.")
@@ -80,11 +94,17 @@ function SelfCare.BuildSettingsPanel()
     MakeCheckbox("printToChat",       "Print reminders to chat",
         "Also print the reminder message to your chat box.")
 
-    MakeCheckbox("dismissOnClick",    "Click to dismiss (uncheck = auto-dismiss)",
-        "If checked, the alert frame stays until you click it. "
-        .. "If unchecked, it auto-dismisses after the configured delay.")
+    -- Forward ref so the callback can reach the delay slider initializer
+    local delayInitializer
 
-    local delaySetting = Settings.RegisterAddOnSetting(
+    MakeCheckbox("autoDismiss", "Auto-dismiss",
+        "Automatically hide the notification after the delay below. Click always dismisses.",
+        function(_, value)
+            SetInitEnabled(delayInitializer, value)
+        end
+    )
+
+    local delaySettingObj = Settings.RegisterAddOnSetting(
         category,
         "SelfCare_dismissDelay",
         "dismissDelay",
@@ -98,23 +118,27 @@ function SelfCare.BuildSettingsPanel()
         MinimalSliderWithSteppersMixin.Label.Right,
         function(value) return value .. "s" end
     )
-    Settings.CreateSlider(category, delaySetting, delayOptions,
-        "How many seconds before the alert disappears (when click-to-dismiss is off).")
+    delayInitializer = Settings.CreateSlider(category, delaySettingObj, delayOptions,
+        "How many seconds before the notification disappears automatically.")
+    SetInitEnabled(delayInitializer, SelfCareDB.autoDismiss)  -- grey out on load if off
 
     -- -----------------------------------------------------------------------
     -- PER-ALERT OPTIONS
     -- -----------------------------------------------------------------------
     for _, alert in ipairs(SelfCare.ALERTS) do
+        local intervalInitializer  -- forward ref so checkbox callback can reach it
+
         MakeCheckbox(
             SelfCare.EnabledKey(alert),
             "Enable " .. alert.label .. " reminder",
             "Toggle the " .. alert.label:lower() .. " timer on or off.",
-            function(setting, value)
+            function(_, value)
                 SelfCare.StartTimer(alert)
+                SetInitEnabled(intervalInitializer, value)
             end
         )
 
-        MakeIntervalSlider(
+        intervalInitializer = MakeIntervalSlider(
             SelfCare.IntervalKey(alert),
             alert.label .. " interval (minutes)",
             string.format(
@@ -125,6 +149,7 @@ function SelfCare.BuildSettingsPanel()
                 SelfCare.StartTimer(alert)
             end
         )
+        SetInitEnabled(intervalInitializer, SelfCareDB[SelfCare.EnabledKey(alert)])  -- grey out if disabled on load
     end
 
     -- -----------------------------------------------------------------------
