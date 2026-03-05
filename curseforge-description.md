@@ -2,22 +2,20 @@ SelfCare reminds you to take care of yourself while you play — hydrate, fix yo
 
 A simple notification appears on screen at each interval. No flashy borders, no interruptions — just a gentle nudge, then it's gone.
 
-## Features
+[h2]Features[/h2]
+[list]
+[*]Three independent reminders: Hydrate, Posture, and Break
+[*]Fully configurable intervals (5–300 minutes per reminder)
+[*]Alerts are paused during combat and cutscenes, then shown afterwards
+[*]Optional chat message alongside the on-screen notification
+[*]Click to dismiss, or set a timer for auto-dismiss
+[*]Configure everything in [b]Esc > Options > AddOns > SelfCare[/b]
+[/list]
 
-- Three independent reminders: Hydrate, Posture, and Break
-- Fully configurable intervals (5–300 minutes per reminder)
-- Alerts are paused during combat and cutscenes, then shown afterwards
-- Optional chat message alongside the on-screen notification
-- Click to dismiss, or set a timer for auto-dismiss
-- Configure everything in **Esc > Options > AddOns > SelfCare**
+[h2]Slash Commands[/h2]
+[list]
+[*][b]/selfcare[/b] — Open settings
+[*][b]/selfcare test[/b] — Preview all three alerts immediately
+[/list]
 
-## Slash Commands
-
-| Command | Description |
-|---|---|
-| `/selfcare` | Open settings |
-| `/selfcare test` | Preview all three alerts immediately |
-
----
-
-Inspired by the [FFXIV SelfCare plugin](https://github.com/chirpxiv/selfcare) by chirpxiv.
+Inspired by the [url=https://github.com/chirpxiv/selfcare]FFXIV SelfCare plugin[/url] by chirpxiv.
