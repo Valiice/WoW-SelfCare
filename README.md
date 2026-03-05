@@ -16,10 +16,13 @@ A World of Warcraft addon that gently reminds you to hydrate, check your posture
 
 ## Installation
 
-1. Download or clone this repository
-2. Copy the `SelfCare.lua` and `SelfCare.toc` files into:
+**From CurseForge:** Install via the CurseForge app (recommended).
+
+**Manually:**
+1. Download the latest release zip from the [Releases](../../releases) page
+2. Extract the `SelfCare` folder into:
    ```
-   World of Warcraft\_retail_\Interface\AddOns\SelfCare\
+   World of Warcraft\_retail_\Interface\AddOns\
    ```
 3. Restart WoW or `/reload` if already in-game
 
@@ -41,8 +44,8 @@ All settings are accessible from the in-game Interface Options panel:
 
 ## Requirements
 
-- WoW Retail 11.x (The War Within)
-- Interface version: 110100
+- WoW Retail 11.x / The War Within
+- Interface version: 120001
 
 ## Development
 

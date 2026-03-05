@@ -8,9 +8,17 @@ SelfCare is a World of Warcraft retail addon (targeting WoW 11.x / The War Withi
 
 ## Architecture
 
-Single-file Lua addon (`SelfCare.lua`) with a TOC file. No build step required.
+Multi-file Lua addon with a TOC file. No build step required.
 
-**Key sections in SelfCare.lua (numbered in comments):**
+**File structure:**
+- `SelfCare.toc` — addon manifest
+- `src/Core.lua` — namespace, DEFAULTS, ALERTS tables, ApplyDefaults
+- `src/Notifications.lua` — notification frame, ShowNotif/HideNotif
+- `src/Timers.lua` — timer engine, combat/cutscene deferral
+- `src/Settings.lua` — Settings API panel
+- `src/Init.lua` — event handler, slash command, public API
+
+**Key sections (numbered in comments within each file):**
 1. `DEFAULTS` table — all intervals stored in seconds, sliders show minutes
 2. `ALERTS` table — drives timer setup, display, and settings panel generation
 3. Runtime state — timer handles, pending alert queue, frame references
@@ -36,12 +44,12 @@ Single-file Lua addon (`SelfCare.lua`) with a TOC file. No build step required.
 Run offline tests with Lua 5.1 (installed via `choco install lua`):
 
 ```
-cd C:\Coding\WoW-SelfCare
+cd B:\Downloads\Coding\WoW-SelfCare
 "C:\Program Files (x86)\Lua\5.1\lua.exe" test_stub.lua
 ```
 
 `test_stub.lua` stubs the WoW API (CreateFrame, C_Timer, Settings, etc.) and:
-- Loads `SelfCare.lua` and checks for syntax/runtime errors
+- Loads all `src/*.lua` files in TOC order and checks for syntax/runtime errors
 - Simulates ADDON_LOADED and PLAYER_LOGIN events
 - Fires `/selfcare test` and individual `SelfCare_TestAlert()` calls
 - Verifies all `SelfCareDB` defaults are applied correctly
@@ -50,4 +58,4 @@ When adding new WoW API calls to `SelfCare.lua`, add corresponding stubs in `tes
 
 ## Installation (in WoW)
 
-Copy `SelfCare.toc` and `SelfCare.lua` to `_retail_\Interface\AddOns\SelfCare\`.
+Copy the entire repo folder (containing `SelfCare.toc` and `src/`) to `_retail_\Interface\AddOns\SelfCare\`.
