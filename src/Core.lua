@@ -6,7 +6,27 @@
 SelfCare = SelfCare or {}
 
 -- ---------------------------------------------------------------------------
--- 1. DEFAULT CONFIGURATION
+-- 1. SOUND CHOICES
+--    Ordered list of { label, soundID } for the alert sound dropdown.
+--    soundID = 0 means "None" (no sound plays).
+-- ---------------------------------------------------------------------------
+SelfCare.SOUNDS = {
+    { "None",                0     },
+    { "UI Ding (Default)",   808   },
+    { "Ready Check",         8960  },
+    { "Raid Warning",        8959  },
+    { "Map Ping",            3175  },
+    { "Quest Complete",      878   },
+    { "Murloc Aggro",        10556 },
+    { "Level Up",            888   },
+    { "PvP Flag",            8174  },
+    { "Auction Sold",        5274  },
+    { "Guild Invite",        7266  },
+    { "Hearthstone",         10418 },
+}
+
+-- ---------------------------------------------------------------------------
+-- 2. DEFAULT CONFIGURATION
 --    All times stored in SECONDS in the DB. Sliders show MINUTES.
 -- ---------------------------------------------------------------------------
 SelfCare.DEFAULTS = {
@@ -28,10 +48,11 @@ SelfCare.DEFAULTS = {
     printToChat       = true,
     autoDismiss       = true,        -- true = auto-dismiss after dismissDelay seconds; click always dismisses
     dismissDelay      = 10,          -- seconds before auto-dismiss (when autoDismiss = true)
+    alertSound        = 808,         -- sound ID to play on notification (0 = none)
 }
 
 -- ---------------------------------------------------------------------------
--- 2. ALERT DEFINITIONS
+-- 3. ALERT DEFINITIONS
 --    Drives timer setup, display, and settings panel generation.
 -- ---------------------------------------------------------------------------
 SelfCare.ALERTS = {

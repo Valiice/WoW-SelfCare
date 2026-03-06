@@ -77,8 +77,11 @@ function SelfCare.ShowNotif(alert)
         SelfCare.Print(alert.message)
     end
 
-    -- Play a pleasant UI sound
-    PlaySound(808)
+    -- Play the user-selected alert sound (0 = silent)
+    local soundID = SelfCareDB.alertSound or 808
+    if soundID ~= 0 then
+        PlaySound(soundID)
+    end
 
     if SelfCareDB.autoDismiss then
         -- Live countdown: tick every second, updating hint text

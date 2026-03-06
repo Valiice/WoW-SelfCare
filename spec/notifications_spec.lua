@@ -60,10 +60,23 @@ describe("Notifications", function()
             assert.equal(1, #fadeInCalls)
         end)
 
-        it("plays sound 808", function()
+        it("plays the default sound 808", function()
             SelfCare.ShowNotif(makeAlert("hydrate"))
             assert.equal(1, #soundCalls)
             assert.equal(808, soundCalls[1])
+        end)
+
+        it("plays the configured alert sound", function()
+            SelfCareDB.alertSound = 8960
+            SelfCare.ShowNotif(makeAlert("hydrate"))
+            assert.equal(1, #soundCalls)
+            assert.equal(8960, soundCalls[1])
+        end)
+
+        it("does not call PlaySound when alertSound is 0 (None)", function()
+            SelfCareDB.alertSound = 0
+            SelfCare.ShowNotif(makeAlert("hydrate"))
+            assert.equal(0, #soundCalls)
         end)
 
         it("prints to chat when printToChat is true", function()

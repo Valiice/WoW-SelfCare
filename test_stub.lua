@@ -165,6 +165,20 @@ Settings = {
         }
     end,
 
+    CreateDropdown = function(category, setting, optionsGenerator, tooltip)
+        LOG("CreateDropdown")
+    end,
+
+    CreateControlTextContainer = function()
+        local items = {}
+        return {
+            Add = function(self, value, label)
+                table.insert(items, { value = value, label = label })
+            end,
+            GetData = function(self) return items end,
+        }
+    end,
+
     CreateSlider = function(category, setting, options, tooltip)
         LOG("CreateSlider")
         local variable = setting and setting.variable or "?"
@@ -241,7 +255,7 @@ end
 -- ---------------------------------------------------------------------------
 print("--- Namespace integrity check ---")
 local expectedKeys = {
-    "DEFAULTS", "ALERTS",
+    "DEFAULTS", "ALERTS", "SOUNDS",
     "Print", "ApplyDefaults", "FindAlertByKey", "EnabledKey", "IntervalKey",
     "ShowNotif", "HideNotif",
     "StartTimer", "StartAllTimers", "StopAllTimers", "FlushPending", "RestartTimers",
@@ -347,6 +361,7 @@ local checks = {
     {"disableInCombat", true},
     {"printToChat",     true},
     {"autoDismiss",     true},
+    {"alertSound",      808},
 }
 
 local pass = 0

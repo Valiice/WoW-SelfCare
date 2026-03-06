@@ -170,7 +170,15 @@ Settings = {
     end,
 
     CreateCheckbox    = function() end,
+    CreateDropdown    = function() end,
     CreateSlider      = function() end,
+    CreateControlTextContainer = function()
+        local items = {}
+        return {
+            Add = function(self, value, label) table.insert(items, { value = value, label = label }) end,
+            GetData = function(self) return items end,
+        }
+    end,
     CreateSliderOptions = function(min, max, step)
         return {
             SetLabelFormatter = function() end,
