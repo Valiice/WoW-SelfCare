@@ -77,10 +77,16 @@ function SelfCare.ShowNotif(alert)
         SelfCare.Print(alert.message)
     end
 
-    -- Play the user-selected alert sound (0 = silent)
+    -- Play the user-selected alert sound at the configured volume
     local soundID = SelfCareDB.alertSound or 808
     if soundID ~= 0 then
-        PlaySound(soundID)
+        local vol = (SelfCareDB.alertVolume or 100) / 100
+        if vol > 0 then
+            local prevVol = GetCVar("Sound_SFXVolume")
+            SetCVar("Sound_SFXVolume", vol)
+            PlaySound(soundID, "SFX")
+            SetCVar("Sound_SFXVolume", prevVol)
+        end
     end
 
     if SelfCareDB.autoDismiss then

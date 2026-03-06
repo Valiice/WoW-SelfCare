@@ -17,7 +17,13 @@ SelfCare.SOUNDS = {
     { "Raid Warning",        8959  },
     { "Map Ping",            3175  },
     { "Quest Complete",      878   },
-    { "Murloc Aggro",        10556 },
+    { "Murloc Gurgle",          414   },
+    { "Murloc Fidget",          415   },
+    { "Murloc Aggro (Classic)", 416   },
+    { "Murloc Attack",          417   },
+    { "Murloc Wound",           418   },
+    { "Murloc Death",           420   },
+    { "Baby Murloc",            8475  },
     { "Level Up",            888   },
     { "PvP Flag",            8174  },
     { "Auction Sold",        5274  },
@@ -49,6 +55,7 @@ SelfCare.DEFAULTS = {
     autoDismiss       = true,        -- true = auto-dismiss after dismissDelay seconds; click always dismisses
     dismissDelay      = 10,          -- seconds before auto-dismiss (when autoDismiss = true)
     alertSound        = 808,         -- sound ID to play on notification (0 = none)
+    alertVolume       = 100,         -- alert volume 0-100 (scales Sound_SFXVolume CVar)
 }
 
 -- ---------------------------------------------------------------------------

@@ -76,8 +76,17 @@ UIParent = MakeFakeFrame("Frame", "UIParent")
 
 function InCombatLockdown() return false end
 
-function PlaySound(id)
-    LOG("PlaySound: " .. tostring(id))
+function PlaySound(id, channel)
+    LOG("PlaySound: " .. tostring(id) .. " / " .. tostring(channel))
+end
+
+local _cvars = {}
+function GetCVar(key)
+    return _cvars[key] or "1"
+end
+function SetCVar(key, value)
+    LOG("SetCVar: " .. tostring(key) .. " = " .. tostring(value))
+    _cvars[key] = tostring(value)
 end
 
 function UIFrameFadeIn(frame, duration, startAlpha, endAlpha)
@@ -362,6 +371,7 @@ local checks = {
     {"printToChat",     true},
     {"autoDismiss",     true},
     {"alertSound",      808},
+    {"alertVolume",     100},
 }
 
 local pass = 0

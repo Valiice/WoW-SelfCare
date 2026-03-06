@@ -84,8 +84,16 @@ MovieFrame = MakeFakeFrame("Frame", "MovieFrame")
 -- Tests set _inCutscene; override IsShown to read it
 MovieFrame.IsShown = function() return _G._inCutscene end
 
-function PlaySound(id)
+function PlaySound(id, channel)
     -- no-op by default; tests can override
+end
+
+local _cvars = {}
+function GetCVar(key)
+    return _cvars[key] or "1"
+end
+function SetCVar(key, value)
+    _cvars[key] = tostring(value)
 end
 
 function UIFrameFadeIn(frame, duration, startAlpha, endAlpha)
@@ -216,6 +224,7 @@ function WowStubs_Reset()
     rawset(_G, "SelfCare",         nil)
     rawset(_G, "SlashCmdList",     {})
     rawset(_G, "SelfCareAddonFrame", nil)
+    _cvars = {}
     C_Timer.Reset()
 end
 
