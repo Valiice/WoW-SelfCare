@@ -162,16 +162,15 @@ describe("Notifications", function()
 
     -- -------------------------------------------------------------------------
     describe("hint text", function()
-        it("shows 'Click to dismiss' hint when dismissOnClick is true", function()
-            SelfCareDB.dismissOnClick = true
+        it("shows countdown hint when autoDismiss is true", function()
+            SelfCareDB.autoDismiss = true
             SelfCare.ShowNotif(makeAlert("hydrate"))
-            -- We can't inspect file-local notifFrame.hint._text directly,
-            -- but no error should occur (smoke check)
+            -- Smoke check: no error, frame fades in
             assert.equal(1, #fadeInCalls)
         end)
 
-        it("shows 'Dismisses in Xs' hint when dismissOnClick is false", function()
-            SelfCareDB.dismissOnClick = false
+        it("shows 'Click to dismiss' hint when autoDismiss is false", function()
+            SelfCareDB.autoDismiss = false
             SelfCare.ShowNotif(makeAlert("hydrate"))
             assert.equal(1, #fadeInCalls)
         end)
