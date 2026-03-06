@@ -84,8 +84,16 @@ MovieFrame = MakeFakeFrame("Frame", "MovieFrame")
 -- Tests set _inCutscene; override IsShown to read it
 MovieFrame.IsShown = function() return _G._inCutscene end
 
-function PlaySound(id)
+function PlaySound(id, channel)
     -- no-op by default; tests can override
+end
+
+local _cvars = {}
+function GetCVar(key)
+    return _cvars[key] or "1"
+end
+function SetCVar(key, value)
+    _cvars[key] = tostring(value)
 end
 
 function UIFrameFadeIn(frame, duration, startAlpha, endAlpha)
@@ -99,8 +107,9 @@ end
 -- ---------------------------------------------------------------------------
 -- C_Timer — captures callbacks so tests can fire them manually
 -- ---------------------------------------------------------------------------
-local _tickers = {}
-local _timers  = {}
+local _tickers     = {}
+local _timers      = {}
+local _afterTimers = {}
 
 C_Timer = {
     NewTicker = function(interval, fn)
@@ -131,14 +140,30 @@ C_Timer = {
         return t
     end,
 
+    -- C_Timer.After: deferred one-shot; stored separately so GetTimers() stays
+    -- clean for tests that index into it by position.
+    After = function(delay, fn)
+        local t = {
+            delay     = delay,
+            fn        = fn,
+            cancelled = false,
+            Cancel    = function(self) self.cancelled = true end,
+            Fire      = function(self) if not self.cancelled then fn() end end,
+        }
+        table.insert(_afterTimers, t)
+        return t
+    end,
+
     -- Test helpers
-    GetTickers = function() return _tickers end,
-    GetTimers  = function() return _timers  end,
+    GetTickers     = function() return _tickers     end,
+    GetTimers      = function() return _timers      end,
+    GetAfterTimers = function() return _afterTimers end,
 
     -- Call between tests to clear captured handles
     Reset = function()
-        _tickers = {}
-        _timers  = {}
+        _tickers     = {}
+        _timers      = {}
+        _afterTimers = {}
     end,
 }
 
@@ -170,7 +195,15 @@ Settings = {
     end,
 
     CreateCheckbox    = function() end,
+    CreateDropdown    = function() end,
     CreateSlider      = function() end,
+    CreateControlTextContainer = function()
+        local items = {}
+        return {
+            Add = function(self, value, label) table.insert(items, { value = value, label = label }) end,
+            GetData = function(self) return items end,
+        }
+    end,
     CreateSliderOptions = function(min, max, step)
         return {
             SetLabelFormatter = function() end,
@@ -208,6 +241,7 @@ function WowStubs_Reset()
     rawset(_G, "SelfCare",         nil)
     rawset(_G, "SlashCmdList",     {})
     rawset(_G, "SelfCareAddonFrame", nil)
+    _cvars = {}
     C_Timer.Reset()
 end
 

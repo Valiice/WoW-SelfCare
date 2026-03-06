@@ -76,8 +76,17 @@ UIParent = MakeFakeFrame("Frame", "UIParent")
 
 function InCombatLockdown() return false end
 
-function PlaySound(id)
-    LOG("PlaySound: " .. tostring(id))
+function PlaySound(id, channel)
+    LOG("PlaySound: " .. tostring(id) .. " / " .. tostring(channel))
+end
+
+local _cvars = {}
+function GetCVar(key)
+    return _cvars[key] or "1"
+end
+function SetCVar(key, value)
+    LOG("SetCVar: " .. tostring(key) .. " = " .. tostring(value))
+    _cvars[key] = tostring(value)
 end
 
 function UIFrameFadeIn(frame, duration, startAlpha, endAlpha)
@@ -107,6 +116,12 @@ C_Timer = {
         timerCount = timerCount + 1
         local id = timerCount
         LOG(string.format("C_Timer.NewTimer: delay=%.2fs (id=%d)", delay, id))
+        return { Cancel = function() LOG("Timer " .. id .. " cancelled") end }
+    end,
+    After = function(delay, fn)
+        timerCount = timerCount + 1
+        local id = timerCount
+        LOG(string.format("C_Timer.After: delay=%.2fs (id=%d)", delay, id))
         return { Cancel = function() LOG("Timer " .. id .. " cancelled") end }
     end,
 }
@@ -162,6 +177,20 @@ Settings = {
             SetEnabled = function(self, enabled)
                 LOG("  -> Initializer:SetEnabled(" .. tostring(enabled) .. ") for " .. tostring(variable))
             end,
+        }
+    end,
+
+    CreateDropdown = function(category, setting, optionsGenerator, tooltip)
+        LOG("CreateDropdown")
+    end,
+
+    CreateControlTextContainer = function()
+        local items = {}
+        return {
+            Add = function(self, value, label)
+                table.insert(items, { value = value, label = label })
+            end,
+            GetData = function(self) return items end,
         }
     end,
 
@@ -241,7 +270,7 @@ end
 -- ---------------------------------------------------------------------------
 print("--- Namespace integrity check ---")
 local expectedKeys = {
-    "DEFAULTS", "ALERTS",
+    "DEFAULTS", "ALERTS", "SOUNDS",
     "Print", "ApplyDefaults", "FindAlertByKey", "EnabledKey", "IntervalKey",
     "ShowNotif", "HideNotif",
     "StartTimer", "StartAllTimers", "StopAllTimers", "FlushPending", "RestartTimers",
@@ -347,6 +376,7 @@ local checks = {
     {"disableInCombat", true},
     {"printToChat",     true},
     {"autoDismiss",     true},
+    {"alertSound",      808},
 }
 
 local pass = 0

@@ -29,6 +29,11 @@ describe("Core", function()
             assert.is_not_nil(d.printToChat)
             assert.is_not_nil(d.autoDismiss)
             assert.is_not_nil(d.dismissDelay)
+            assert.is_not_nil(d.alertSound)
+        end)
+
+        it("defaults alertSound to 808", function()
+            assert.equal(808, SelfCare.DEFAULTS.alertSound)
         end)
 
         it("stores intervals in seconds", function()
@@ -63,6 +68,38 @@ describe("Core", function()
             assert.equal("hydrate", SelfCare.ALERTS[1].key)
             assert.equal("posture", SelfCare.ALERTS[2].key)
             assert.equal("break",   SelfCare.ALERTS[3].key)
+        end)
+    end)
+
+    -- -------------------------------------------------------------------------
+    describe("SOUNDS", function()
+        it("is a non-empty table", function()
+            assert.is_table(SelfCare.SOUNDS)
+            assert.truthy(#SelfCare.SOUNDS > 0)
+        end)
+
+        it("each entry has a non-empty string label and a number soundID", function()
+            for i, entry in ipairs(SelfCare.SOUNDS) do
+                assert.is_string(entry[1],
+                    "SOUNDS[" .. i .. "] label should be a string")
+                assert.truthy(#entry[1] > 0,
+                    "SOUNDS[" .. i .. "] label should not be empty")
+                assert.is_number(entry[2],
+                    "SOUNDS[" .. i .. "] soundID should be a number")
+            end
+        end)
+
+        it("first entry is None with soundID 0", function()
+            assert.equal("None", SelfCare.SOUNDS[1][1])
+            assert.equal(0, SelfCare.SOUNDS[1][2])
+        end)
+
+        it("contains the default sound ID 808", function()
+            local found = false
+            for _, entry in ipairs(SelfCare.SOUNDS) do
+                if entry[2] == 808 then found = true end
+            end
+            assert.is_true(found, "SOUNDS should contain soundID 808")
         end)
     end)
 

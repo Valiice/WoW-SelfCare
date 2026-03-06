@@ -84,6 +84,32 @@ function SelfCare.BuildSettingsPanel()
     -- -----------------------------------------------------------------------
     -- GLOBAL OPTIONS
     -- -----------------------------------------------------------------------
+
+    -- Alert sound dropdown
+    local soundSetting = Settings.RegisterAddOnSetting(
+        category,
+        "SelfCare_alertSound",
+        "alertSound",
+        SelfCareDB,
+        Settings.VarType.Number,
+        "Alert sound",
+        DEFAULTS.alertSound
+    )
+    soundSetting:SetValueChangedCallback(function(_, newValue)
+        if newValue ~= 0 then
+            PlaySound(newValue, "SFX")
+        end
+    end)
+    local function GetSoundOptions()
+        local container = Settings.CreateControlTextContainer()
+        for _, entry in ipairs(SelfCare.SOUNDS) do
+            container:Add(entry[2], entry[1])
+        end
+        return container:GetData()
+    end
+    Settings.CreateDropdown(category, soundSetting, GetSoundOptions,
+        "Sound to play when a reminder pops up. Set to None to disable alert sounds.")
+
     MakeCheckbox("disableInCombat",   "Disable during combat",
         "Timers keep running during combat. Alerts that fire while in combat are queued "
         .. "and shown immediately when combat ends.")

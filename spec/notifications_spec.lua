@@ -38,8 +38,8 @@ describe("Notifications", function()
             if frame then frame:SetAlpha(endAlpha or 0) end
         end
 
-        _G.PlaySound = function(id)
-            table.insert(soundCalls, id)
+        _G.PlaySound = function(id, channel)
+            table.insert(soundCalls, { id = id, channel = channel })
         end
 
         local origPrint = SelfCare.Print
@@ -60,10 +60,24 @@ describe("Notifications", function()
             assert.equal(1, #fadeInCalls)
         end)
 
-        it("plays sound 808", function()
+        it("plays the default sound 808", function()
             SelfCare.ShowNotif(makeAlert("hydrate"))
             assert.equal(1, #soundCalls)
-            assert.equal(808, soundCalls[1])
+            assert.equal(808, soundCalls[1].id)
+            assert.equal("SFX", soundCalls[1].channel)
+        end)
+
+        it("plays the configured alert sound", function()
+            SelfCareDB.alertSound = 8960
+            SelfCare.ShowNotif(makeAlert("hydrate"))
+            assert.equal(1, #soundCalls)
+            assert.equal(8960, soundCalls[1].id)
+        end)
+
+        it("does not call PlaySound when alertSound is 0 (None)", function()
+            SelfCareDB.alertSound = 0
+            SelfCare.ShowNotif(makeAlert("hydrate"))
+            assert.equal(0, #soundCalls)
         end)
 
         it("prints to chat when printToChat is true", function()
