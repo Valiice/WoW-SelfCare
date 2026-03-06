@@ -1,0 +1,54 @@
+name: Tests
+
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+    branches: ["master", "main"]
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Lua syntax lint — catches syntax errors in all .lua files
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lua syntax lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Lua
+        uses: hishamhm/gh-actions-lua@master
+        with:
+          luaVersion: "5.1"
+
+      - name: Check Lua syntax
+        run: |
+          find src/ spec/ -name "*.lua" -print0 \
+            | xargs -0 -n1 luac -p
+          echo "All .lua files pass syntax check."
+
+  # ---------------------------------------------------------------------------
+  # busted unit tests
+  # ---------------------------------------------------------------------------
+  test:
+    name: busted unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Lua
+        uses: hishamhm/gh-actions-lua@master
+        with:
+          luaVersion: "5.1"
+
+      - name: Set up LuaRocks
+        uses: hishamhm/gh-actions-luarocks@master
+
+      - name: Install busted
+        run: luarocks install busted
+
+      - name: Run busted tests
+        run: busted --output=TAP
+
+      - name: Run smoke test (test_stub.lua)
+        run: lua test_stub.lua

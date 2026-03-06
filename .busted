@@ -1,0 +1,12 @@
+return {
+    default = {
+        -- Run all *_spec.lua files under spec/
+        pattern = "_spec",
+        -- Add spec/ helpers to the Lua module path (for require-based helpers)
+        lpath = "spec/?.lua;spec/?/init.lua",
+        -- TAP output is portable and works without lua-term's C extension
+        output = "TAP",
+        -- Seed for reproducible test ordering
+        seed = 42,
+    },
+}

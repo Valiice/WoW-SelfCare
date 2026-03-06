@@ -6,3 +6,6 @@ ignore:
   - README.md
   - .github
   - .claude
+  - .busted
+  - spec
+  - scripts

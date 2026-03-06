@@ -3,3 +3,6 @@
 
 # Git worktrees
 .worktrees/
+
+# Local busted dependency tree (set up via scripts/install-test-deps.sh)
+lua_modules/
