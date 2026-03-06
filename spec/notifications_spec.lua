@@ -38,8 +38,8 @@ describe("Notifications", function()
             if frame then frame:SetAlpha(endAlpha or 0) end
         end
 
-        _G.PlaySound = function(id)
-            table.insert(soundCalls, id)
+        _G.PlaySound = function(id, channel)
+            table.insert(soundCalls, { id = id, channel = channel })
         end
 
         local origPrint = SelfCare.Print
@@ -63,14 +63,45 @@ describe("Notifications", function()
         it("plays the default sound 808", function()
             SelfCare.ShowNotif(makeAlert("hydrate"))
             assert.equal(1, #soundCalls)
-            assert.equal(808, soundCalls[1])
+            assert.equal(808, soundCalls[1].id)
+            assert.equal("SFX", soundCalls[1].channel)
         end)
 
         it("plays the configured alert sound", function()
             SelfCareDB.alertSound = 8960
             SelfCare.ShowNotif(makeAlert("hydrate"))
             assert.equal(1, #soundCalls)
-            assert.equal(8960, soundCalls[1])
+            assert.equal(8960, soundCalls[1].id)
+        end)
+
+        it("sets Sound_SFXVolume CVar before playing and defers restore", function()
+            SelfCareDB.alertVolume = 50
+            local setCvarCalls = {}
+            _G.SetCVar = function(key, value)
+                table.insert(setCvarCalls, { key = key, value = tostring(value) })
+            end
+            SelfCare.ShowNotif(makeAlert("hydrate"))
+            -- First SetCVar call should set volume to 0.5
+            assert.equal("Sound_SFXVolume", setCvarCalls[1].key)
+            assert.equal("0.5", setCvarCalls[1].value)
+            -- Restore is deferred (via C_Timer.After), not immediate
+            assert.equal(1, #setCvarCalls)
+            -- Fire the deferred restore
+            local afterTimers = C_Timer.GetAfterTimers()
+            assert.equal(1, #afterTimers)
+            afterTimers[1]:Fire()
+            assert.equal(2, #setCvarCalls)
+        end)
+
+        it("does not play sound or set CVar when alertVolume is 0", function()
+            SelfCareDB.alertVolume = 0
+            local setCvarCalls = {}
+            _G.SetCVar = function(key, value)
+                table.insert(setCvarCalls, { key = key, value = value })
+            end
+            SelfCare.ShowNotif(makeAlert("hydrate"))
+            assert.equal(0, #soundCalls)
+            assert.equal(0, #setCvarCalls)
         end)
 
         it("does not call PlaySound when alertSound is 0 (None)", function()

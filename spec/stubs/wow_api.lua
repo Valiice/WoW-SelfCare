@@ -107,8 +107,9 @@ end
 -- ---------------------------------------------------------------------------
 -- C_Timer — captures callbacks so tests can fire them manually
 -- ---------------------------------------------------------------------------
-local _tickers = {}
-local _timers  = {}
+local _tickers     = {}
+local _timers      = {}
+local _afterTimers = {}
 
 C_Timer = {
     NewTicker = function(interval, fn)
@@ -139,14 +140,30 @@ C_Timer = {
         return t
     end,
 
+    -- C_Timer.After: deferred one-shot; stored separately so GetTimers() stays
+    -- clean for tests that index into it by position.
+    After = function(delay, fn)
+        local t = {
+            delay     = delay,
+            fn        = fn,
+            cancelled = false,
+            Cancel    = function(self) self.cancelled = true end,
+            Fire      = function(self) if not self.cancelled then fn() end end,
+        }
+        table.insert(_afterTimers, t)
+        return t
+    end,
+
     -- Test helpers
-    GetTickers = function() return _tickers end,
-    GetTimers  = function() return _timers  end,
+    GetTickers     = function() return _tickers     end,
+    GetTimers      = function() return _timers      end,
+    GetAfterTimers = function() return _afterTimers end,
 
     -- Call between tests to clear captured handles
     Reset = function()
-        _tickers = {}
-        _timers  = {}
+        _tickers     = {}
+        _timers      = {}
+        _afterTimers = {}
     end,
 }
 

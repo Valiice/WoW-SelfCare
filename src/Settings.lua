@@ -102,7 +102,7 @@ function SelfCare.BuildSettingsPanel()
                 local prevVol = GetCVar("Sound_SFXVolume")
                 SetCVar("Sound_SFXVolume", vol)
                 PlaySound(newValue, "SFX")
-                SetCVar("Sound_SFXVolume", prevVol)
+                C_Timer.After(0, function() SetCVar("Sound_SFXVolume", prevVol) end)
             end
         end
     end)

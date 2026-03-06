@@ -118,6 +118,12 @@ C_Timer = {
         LOG(string.format("C_Timer.NewTimer: delay=%.2fs (id=%d)", delay, id))
         return { Cancel = function() LOG("Timer " .. id .. " cancelled") end }
     end,
+    After = function(delay, fn)
+        timerCount = timerCount + 1
+        local id = timerCount
+        LOG(string.format("C_Timer.After: delay=%.2fs (id=%d)", delay, id))
+        return { Cancel = function() LOG("Timer " .. id .. " cancelled") end }
+    end,
 }
 
 -- ---------------------------------------------------------------------------
