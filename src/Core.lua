@@ -51,6 +51,7 @@ SelfCare.DEFAULTS = {
     -- Global toggles
     disableInCombat   = true,
     disableInCutscene = true,
+    disableWhenAFK    = true,
     printToChat       = true,
     autoDismiss       = true,        -- true = auto-dismiss after dismissDelay seconds; click always dismisses
     dismissDelay      = 10,          -- seconds before auto-dismiss (when autoDismiss = true)

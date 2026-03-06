@@ -171,6 +171,42 @@ describe("Timers", function()
 
             assert.equal(0, #showNotifCalls)
         end)
+
+    -- -------------------------------------------------------------------------
+    describe("AFK deferral", function()
+        it("queues alert when AFK and disableWhenAFK is true", function()
+            _G._isAFK = true
+            SelfCareDB.disableWhenAFK = true
+
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            C_Timer.GetTickers()[1]:Fire()
+
+            assert.equal(0, #showNotifCalls)
+        end)
+
+        it("fires immediately when disableWhenAFK is false, even if AFK", function()
+            _G._isAFK = true
+            SelfCareDB.disableWhenAFK = false
+
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            C_Timer.GetTickers()[1]:Fire()
+
+            assert.equal(1, #showNotifCalls)
+        end)
+
+        it("flushes queued alerts when un-AFK", function()
+            _G._isAFK = true
+            SelfCareDB.disableWhenAFK = true
+
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            C_Timer.GetTickers()[1]:Fire()
+            assert.equal(0, #showNotifCalls)
+
+            _G._isAFK = false
+            SelfCare.FlushPending()
+            assert.equal(1, #showNotifCalls)
+        end)
+    end)
     end)
 
     -- -------------------------------------------------------------------------
