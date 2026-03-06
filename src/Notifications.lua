@@ -77,18 +77,10 @@ function SelfCare.ShowNotif(alert)
         SelfCare.Print(alert.message)
     end
 
-    -- Play the user-selected alert sound at the configured volume.
-    -- Sound_SFXVolume is applied continuously by WoW's audio engine, so we
-    -- defer the CVar restore by one frame to give it time to start at vol.
+    -- Play the user-selected alert sound (0 = silent)
     local soundID = SelfCareDB.alertSound or 808
     if soundID ~= 0 then
-        local vol = (SelfCareDB.alertVolume or 100) / 100
-        if vol > 0 then
-            local prevVol = GetCVar("Sound_SFXVolume")
-            SetCVar("Sound_SFXVolume", vol)
-            PlaySound(soundID, "SFX")
-            C_Timer.After(0, function() SetCVar("Sound_SFXVolume", prevVol) end)
-        end
+        PlaySound(soundID, "SFX")
     end
 
     if SelfCareDB.autoDismiss then

@@ -97,13 +97,7 @@ function SelfCare.BuildSettingsPanel()
     )
     soundSetting:SetValueChangedCallback(function(_, newValue)
         if newValue ~= 0 then
-            local vol = (SelfCareDB.alertVolume or 100) / 100
-            if vol > 0 then
-                local prevVol = GetCVar("Sound_SFXVolume")
-                SetCVar("Sound_SFXVolume", vol)
-                PlaySound(newValue, "SFX")
-                C_Timer.After(0, function() SetCVar("Sound_SFXVolume", prevVol) end)
-            end
+            PlaySound(newValue, "SFX")
         end
     end)
     local function GetSoundOptions()
@@ -115,24 +109,6 @@ function SelfCare.BuildSettingsPanel()
     end
     Settings.CreateDropdown(category, soundSetting, GetSoundOptions,
         "Sound to play when a reminder pops up. Set to None to disable alert sounds.")
-
-    -- Alert volume slider (0–100)
-    local volumeSetting = Settings.RegisterAddOnSetting(
-        category,
-        "SelfCare_alertVolume",
-        "alertVolume",
-        SelfCareDB,
-        Settings.VarType.Number,
-        "Alert volume",
-        DEFAULTS.alertVolume
-    )
-    local volumeOptions = Settings.CreateSliderOptions(0, 100, 5)
-    volumeOptions:SetLabelFormatter(
-        MinimalSliderWithSteppersMixin.Label.Right,
-        function(value) return value .. "%" end
-    )
-    Settings.CreateSlider(category, volumeSetting, volumeOptions,
-        "Volume for the alert sound (0 = silent, 100 = full).")
 
     MakeCheckbox("disableInCombat",   "Disable during combat",
         "Timers keep running during combat. Alerts that fire while in combat are queued "

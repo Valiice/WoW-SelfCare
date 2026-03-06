@@ -30,19 +30,10 @@ describe("Core", function()
             assert.is_not_nil(d.autoDismiss)
             assert.is_not_nil(d.dismissDelay)
             assert.is_not_nil(d.alertSound)
-            assert.is_not_nil(d.alertVolume)
         end)
 
         it("defaults alertSound to 808", function()
             assert.equal(808, SelfCare.DEFAULTS.alertSound)
-        end)
-
-        it("has alertVolume not_nil", function()
-            assert.is_not_nil(SelfCare.DEFAULTS.alertVolume)
-        end)
-
-        it("defaults alertVolume to 100", function()
-            assert.equal(100, SelfCare.DEFAULTS.alertVolume)
         end)
 
         it("stores intervals in seconds", function()

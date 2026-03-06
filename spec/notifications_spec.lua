@@ -74,36 +74,6 @@ describe("Notifications", function()
             assert.equal(8960, soundCalls[1].id)
         end)
 
-        it("sets Sound_SFXVolume CVar before playing and defers restore", function()
-            SelfCareDB.alertVolume = 50
-            local setCvarCalls = {}
-            _G.SetCVar = function(key, value)
-                table.insert(setCvarCalls, { key = key, value = tostring(value) })
-            end
-            SelfCare.ShowNotif(makeAlert("hydrate"))
-            -- First SetCVar call should set volume to 0.5
-            assert.equal("Sound_SFXVolume", setCvarCalls[1].key)
-            assert.equal("0.5", setCvarCalls[1].value)
-            -- Restore is deferred (via C_Timer.After), not immediate
-            assert.equal(1, #setCvarCalls)
-            -- Fire the deferred restore
-            local afterTimers = C_Timer.GetAfterTimers()
-            assert.equal(1, #afterTimers)
-            afterTimers[1]:Fire()
-            assert.equal(2, #setCvarCalls)
-        end)
-
-        it("does not play sound or set CVar when alertVolume is 0", function()
-            SelfCareDB.alertVolume = 0
-            local setCvarCalls = {}
-            _G.SetCVar = function(key, value)
-                table.insert(setCvarCalls, { key = key, value = value })
-            end
-            SelfCare.ShowNotif(makeAlert("hydrate"))
-            assert.equal(0, #soundCalls)
-            assert.equal(0, #setCvarCalls)
-        end)
-
         it("does not call PlaySound when alertSound is 0 (None)", function()
             SelfCareDB.alertSound = 0
             SelfCare.ShowNotif(makeAlert("hydrate"))

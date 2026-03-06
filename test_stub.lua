@@ -377,7 +377,6 @@ local checks = {
     {"printToChat",     true},
     {"autoDismiss",     true},
     {"alertSound",      808},
-    {"alertVolume",     100},
 }
 
 local pass = 0
