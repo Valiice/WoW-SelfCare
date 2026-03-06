@@ -33,21 +33,39 @@ jobs:
             echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           fi
 
-  test:
+  test-smoke:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Run offline tests
+      - name: Run smoke test
         run: |
           sudo apt-get install -y lua5.1 -q
           lua5.1 test_stub.lua
 
+  test-busted:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Lua
+        uses: hishamhm/gh-actions-lua@master
+        with:
+          luaVersion: "5.1"
+
+      - name: Set up LuaRocks
+        uses: hishamhm/gh-actions-luarocks@master
+
+      - name: Install busted
+        run: luarocks install busted
+
+      - name: Run busted tests
+        run: busted --output=TAP
+
   release:
-    needs: [ prepare, test ]
+    needs: [ prepare, test-smoke, test-busted ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
