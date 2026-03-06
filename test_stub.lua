@@ -75,6 +75,7 @@ end
 UIParent = MakeFakeFrame("Frame", "UIParent")
 
 function InCombatLockdown() return false end
+function IsAFK() return false end
 
 function PlaySound(id, channel)
     LOG("PlaySound: " .. tostring(id) .. " / " .. tostring(channel))
