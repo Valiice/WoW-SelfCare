@@ -124,8 +124,10 @@ function SelfCare.ResetToDefaults()
     SelfCare.ApplyDefaults()
     SelfCare.RestartTimers()
     SelfCare.Print("Settings reset to defaults.")
-    -- Reopen the panel to force sliders/checkboxes to reflect the new DB values
+    -- Hide and reopen the panel so sliders/checkboxes re-render from the new DB values
+    -- (OpenToCategory alone is a no-op when already on that category)
     if SelfCare.Category and SettingsPanel and SettingsPanel:IsShown() then
+        SettingsPanel:Hide()
         Settings.OpenToCategory(SelfCare.Category.ID)
     end
 end
