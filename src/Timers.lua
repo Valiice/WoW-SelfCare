@@ -32,7 +32,12 @@ local function FireAlert(alert)
         return
     end
     local intervalKey = SelfCare.IntervalKey(alert)
-    SelfCareDB.nextDue[alert.key] = time() + SelfCareDB[intervalKey]
+    local interval    = SelfCareDB[intervalKey]
+    -- Guard: skip if we fired recently (nextDue still more than half an interval away).
+    -- Prevents duplicate shows when two timers for the same alert fire in quick succession.
+    local nextDue = SelfCareDB.nextDue[alert.key]
+    if nextDue and (nextDue - time()) > (interval / 2) then return end
+    SelfCareDB.nextDue[alert.key] = time() + interval
     SelfCare.ShowNotif(alert)
 end
 
