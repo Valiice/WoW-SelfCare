@@ -27,7 +27,7 @@ Multi-file Lua addon with a TOC file. No build step required.
 6. Timer engine — `C_Timer.NewTicker` per alert, combat/cutscene deferral via `pendingAlerts` queue
 7. Event handler — ADDON_LOADED, PLAYER_LOGIN, PLAYER_REGEN_ENABLED, CINEMATIC_STOP
 8. Settings panel — post-11.0.2 Settings API (`RegisterAddOnSetting` with `variableKey + variableTbl` signature)
-9. Slash command — `/selfcare` opens settings, `/selfcare test` fires all alerts
+9. Slash command — `/selfcare` opens settings, `/selfcare test` fires all alerts, `/selfcare debug` prints timer snapshot to chat
 10. Public API — `SelfCare_RestartTimers()`, `SelfCare_TestAlert(key)`
 
 **SavedVariables:** `SelfCareDB` (registered in TOC)
@@ -41,20 +41,21 @@ Multi-file Lua addon with a TOC file. No build step required.
 
 ## Testing
 
-Run offline tests with Lua 5.1 (installed via `choco install lua`):
+**Unit tests (primary):** BDD-style specs with busted, 112 tests across `spec/`:
+
+```bash
+bash scripts/run-tests.sh --tap
+```
+
+Run `scripts/install-test-deps.sh` once first to install busted into `lua_modules/` (Windows workaround for LuaRocks 2.x).
+
+**Smoke test (no dependencies):**
 
 ```
-cd B:\Downloads\Coding\WoW-SelfCare
 "C:\Program Files (x86)\Lua\5.1\lua.exe" test_stub.lua
 ```
 
-`test_stub.lua` stubs the WoW API (CreateFrame, C_Timer, Settings, etc.) and:
-- Loads all `src/*.lua` files in TOC order and checks for syntax/runtime errors
-- Simulates ADDON_LOADED and PLAYER_LOGIN events
-- Fires `/selfcare test` and individual `SelfCare_TestAlert()` calls
-- Verifies all `SelfCareDB` defaults are applied correctly
-
-When adding new WoW API calls to `SelfCare.lua`, add corresponding stubs in `test_stub.lua`.
+When adding new WoW API calls, add corresponding stubs in `spec/stubs/wow_api.lua`.
 
 ## Installation (in WoW)
 
