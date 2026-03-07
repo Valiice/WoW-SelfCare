@@ -9,6 +9,7 @@ local notifFrame           -- the shared Button frame
 local notifDismissTimer    -- auto-dismiss timer handle
 local notifHideTimer       -- the 0.31s fade-then-hide timer
 local notifCountdownTicker -- 1s ticker for live countdown display
+local notifQueue = {}      -- alerts waiting to display
 
 local function BuildNotifFrame()
     if notifFrame then return end
@@ -62,6 +63,13 @@ end
 
 function SelfCare.ShowNotif(alert)
     BuildNotifFrame()
+    if notifFrame:IsShown() then
+        for _, queued in ipairs(notifQueue) do
+            if queued.key == alert.key then return end
+        end
+        table.insert(notifQueue, alert)
+        return
+    end
     if notifHideTimer       then notifHideTimer:Cancel();       notifHideTimer       = nil end
     if notifDismissTimer    then notifDismissTimer:Cancel();    notifDismissTimer    = nil end
     if notifCountdownTicker then notifCountdownTicker:Cancel(); notifCountdownTicker = nil end
@@ -111,6 +119,9 @@ function SelfCare.HideNotif()
         notifHideTimer = C_Timer.NewTimer(0.31, function()
             notifFrame:Hide()
             notifHideTimer = nil
+            if #notifQueue > 0 then
+                SelfCare.ShowNotif(table.remove(notifQueue, 1))
+            end
         end)
     end
 end
