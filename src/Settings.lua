@@ -193,8 +193,15 @@ function SelfCare.BuildSettingsPanel()
         true
     ))
 
+    layout:AddInitializer(CreateSettingsButtonInitializer(
+        "Reset everything to factory defaults",
+        "Reset to Defaults",
+        SelfCare.ResetToDefaults,
+        "Wipe all saved settings and restart timers from scratch.",
+        true
+    ))
+
     -- Register and expose the category
     Settings.RegisterAddOnCategory(category)
-    category:SetRevertCallback(function() SelfCare.ResetToDefaults() end)
     SelfCare.Category = category
 end
