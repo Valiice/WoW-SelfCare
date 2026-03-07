@@ -5,7 +5,7 @@
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
--- Local helpers for /selfcare debug
+-- Local helpers for /selfcare debug and ResetTimers
 -- ---------------------------------------------------------------------------
 local function FormatInterval(s)
     local h = math.floor(s / 3600)
@@ -74,31 +74,12 @@ SlashCmdList["SELFCARE"] = function(msg)
     end
 
     if cmd == "reset" then
-        SelfCare.RestartTimers()
+        SelfCare.ResetTimers()
         return
     end
 
     if cmd == "debug" then
-        SelfCare.Print("SelfCare Debug:")
-        for _, alert in ipairs(SelfCare.ALERTS) do
-            local enabledKey  = SelfCare.EnabledKey(alert)
-            local intervalKey = SelfCare.IntervalKey(alert)
-            if not SelfCareDB[enabledKey] then
-                SelfCare.Print(string.format("  %s — [disabled]", alert.key))
-            else
-                local interval = SelfCareDB[intervalKey]
-                local nextDue  = SelfCareDB.nextDue and SelfCareDB.nextDue[alert.key]
-                if not nextDue then
-                    SelfCare.Print(string.format("  %s — [pending first fire]  [%s interval]",
-                        alert.key, FormatInterval(interval)))
-                else
-                    local remaining = nextDue - time()
-                    SelfCare.Print(string.format("  %s — due %s (in %s)  [%s interval]",
-                        alert.key, date("%H:%M:%S", nextDue),
-                        FormatRemaining(remaining), FormatInterval(interval)))
-                end
-            end
-        end
+        SelfCare.PrintDebug()
         return
     end
 
@@ -112,6 +93,37 @@ end
 -- ---------------------------------------------------------------------------
 -- Public API
 -- ---------------------------------------------------------------------------
+
+--- Print a debug snapshot of all timer states to chat.
+function SelfCare.PrintDebug()
+    SelfCare.Print("SelfCare Debug:")
+    for _, alert in ipairs(SelfCare.ALERTS) do
+        local enabledKey  = SelfCare.EnabledKey(alert)
+        local intervalKey = SelfCare.IntervalKey(alert)
+        if not SelfCareDB[enabledKey] then
+            SelfCare.Print(string.format("  %s — [disabled]", alert.key))
+        else
+            local interval = SelfCareDB[intervalKey]
+            local nextDue  = SelfCareDB.nextDue and SelfCareDB.nextDue[alert.key]
+            if not nextDue then
+                SelfCare.Print(string.format("  %s — [pending first fire]  [%s interval]",
+                    alert.key, FormatInterval(interval)))
+            else
+                local remaining = nextDue - time()
+                SelfCare.Print(string.format("  %s — due %s (in %s)  [%s interval]",
+                    alert.key, date("%H:%M:%S", nextDue),
+                    FormatRemaining(remaining), FormatInterval(interval)))
+            end
+        end
+    end
+end
+
+--- Restart all timers from now and print a debug snapshot.
+--- Called by the Settings panel Reset Timers button and /selfcare reset.
+function SelfCare.ResetTimers()
+    SelfCare.RestartTimers()
+    SelfCare.PrintDebug()
+end
 
 --- Fire all alert notifications immediately (for testing / preview).
 function SelfCare.TestAllAlerts()

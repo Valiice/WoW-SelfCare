@@ -199,7 +199,7 @@ function SelfCare.BuildSettingsPanel()
     layout:AddInitializer(CreateSettingsButtonInitializer(
         "Timers feeling off or out of sync?",
         "Reset Timers",
-        SelfCare.RestartTimers,
+        SelfCare.ResetTimers,
         "Restarts all timers from now using your current interval settings. Does not change any settings.",
         true
     ))
