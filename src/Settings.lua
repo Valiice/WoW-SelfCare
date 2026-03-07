@@ -195,5 +195,6 @@ function SelfCare.BuildSettingsPanel()
 
     -- Register and expose the category
     Settings.RegisterAddOnCategory(category)
+    category:SetRevertCallback(function() SelfCare.ResetToDefaults() end)
     SelfCare.Category = category
 end

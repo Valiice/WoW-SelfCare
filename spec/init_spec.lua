@@ -318,6 +318,52 @@ describe("Init", function()
     end)
 
     -- -------------------------------------------------------------------------
+    describe("ResetToDefaults", function()
+        before_each(function()
+            SelfCareAddonFrame:_FireEvent("ADDON_LOADED", "SelfCare")
+            SelfCare.ApplyDefaults()
+        end)
+
+        it("wipes nextDue", function()
+            SelfCareDB.nextDue = { hydrate = 9999, posture = 9999 }
+            SelfCare.ResetToDefaults()
+            assert.same({}, SelfCareDB.nextDue)
+        end)
+
+        it("wipes notifPos", function()
+            SelfCareDB.notifPos = { "CENTER", "CENTER", 0, 100 }
+            SelfCare.ResetToDefaults()
+            assert.is_nil(SelfCareDB.notifPos)
+        end)
+
+        it("wipes stale keys like dismissOnClick", function()
+            SelfCareDB.dismissOnClick = true
+            SelfCare.ResetToDefaults()
+            assert.is_nil(SelfCareDB.dismissOnClick)
+        end)
+
+        it("restores default values", function()
+            SelfCareDB.hydrateInterval = 9999
+            SelfCare.ResetToDefaults()
+            assert.equal(SelfCare.DEFAULTS.hydrateInterval, SelfCareDB.hydrateInterval)
+        end)
+
+        it("calls RestartTimers", function()
+            local called = false
+            SelfCare.RestartTimers = function() called = true end
+            SelfCare.ResetToDefaults()
+            assert.is_true(called)
+        end)
+
+        it("is triggered by the Settings Defaults button", function()
+            local called = false
+            SelfCare.ResetToDefaults = function() called = true end
+            SelfCare.Category:_TriggerRevert()
+            assert.is_true(called)
+        end)
+    end)
+
+    -- -------------------------------------------------------------------------
     describe("backwards-compatibility globals", function()
         it("SelfCare_ShowNotif is set", function()
             assert.is_function(SelfCare_ShowNotif)

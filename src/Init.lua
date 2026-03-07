@@ -115,6 +115,17 @@ function SelfCare.TestAllAlerts()
     end
 end
 
+--- Wipe SelfCareDB entirely and restore factory defaults.
+--- Called by the Settings panel's Defaults button.
+function SelfCare.ResetToDefaults()
+    for k in pairs(SelfCareDB) do
+        SelfCareDB[k] = nil
+    end
+    SelfCare.ApplyDefaults()
+    SelfCare.RestartTimers()
+    SelfCare.Print("Settings reset to defaults.")
+end
+
 --- Immediately show a test notification for a given alert key.
 function SelfCare.TestAlert(alertKey)
     local alert = SelfCare.FindAlertByKey(alertKey)
