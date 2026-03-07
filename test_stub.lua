@@ -75,6 +75,7 @@ end
 UIParent = MakeFakeFrame("Frame", "UIParent")
 
 function InCombatLockdown() return false end
+function IsAFK() return false end
 
 function PlaySound(id, channel)
     LOG("PlaySound: " .. tostring(id) .. " / " .. tostring(channel))
@@ -374,6 +375,7 @@ local checks = {
     {"breakEnabled",    true},
     {"breakInterval",   8400},
     {"disableInCombat", true},
+    {"disableWhenAFK",  true},
     {"printToChat",     true},
     {"autoDismiss",     true},
     {"alertSound",      808},

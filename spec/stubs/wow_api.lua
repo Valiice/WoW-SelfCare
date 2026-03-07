@@ -12,9 +12,14 @@
 -- ---------------------------------------------------------------------------
 _G._inCombat    = false
 _G._inCutscene  = false
+_G._isAFK       = false
 
 function InCombatLockdown()
     return _G._inCombat
+end
+
+function IsAFK()
+    return _G._isAFK
 end
 
 -- ---------------------------------------------------------------------------
@@ -237,6 +242,7 @@ SlashCmdList = SlashCmdList or {}
 function WowStubs_Reset()
     rawset(_G, "_inCombat",        false)
     rawset(_G, "_inCutscene",      false)
+    rawset(_G, "_isAFK",        false)
     rawset(_G, "SelfCareDB",       nil)
     rawset(_G, "SelfCare",         nil)
     rawset(_G, "SlashCmdList",     {})

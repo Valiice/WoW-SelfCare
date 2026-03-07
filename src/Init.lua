@@ -13,6 +13,7 @@ addonFrame:RegisterEvent("ADDON_LOADED")
 addonFrame:RegisterEvent("PLAYER_LOGIN")
 addonFrame:RegisterEvent("PLAYER_REGEN_ENABLED")   -- combat ends
 addonFrame:RegisterEvent("CINEMATIC_STOP")         -- in-game cutscenes end
+addonFrame:RegisterEvent("PLAYER_FLAGS_CHANGED")  -- AFK state changes
 
 addonFrame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == "SelfCare" then
@@ -23,6 +24,9 @@ addonFrame:SetScript("OnEvent", function(self, event, arg1)
         SelfCare.StartAllTimers()
 
     elseif event == "PLAYER_REGEN_ENABLED" or event == "CINEMATIC_STOP" then
+        SelfCare.FlushPending()
+
+    elseif event == "PLAYER_FLAGS_CHANGED" then
         SelfCare.FlushPending()
     end
 end)
