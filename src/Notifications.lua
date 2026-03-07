@@ -64,6 +64,9 @@ end
 function SelfCare.ShowNotif(alert)
     BuildNotifFrame()
     if notifFrame:IsShown() then
+        for _, queued in ipairs(notifQueue) do
+            if queued.key == alert.key then return end
+        end
         table.insert(notifQueue, alert)
         return
     end

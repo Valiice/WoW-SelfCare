@@ -236,6 +236,22 @@ describe("Notifications", function()
             assert.equal(3, #fadeInCalls)
         end)
 
+        it("does not queue the same alert key twice", function()
+            SelfCare.ShowNotif(makeAlert("hydrate"))   -- shows immediately
+            SelfCare.ShowNotif(makeAlert("posture"))   -- queued
+            SelfCare.ShowNotif(makeAlert("posture"))   -- duplicate — should be ignored
+
+            -- Dismiss hydrate → posture shows (2nd fadeIn)
+            SelfCare.HideNotif()
+            C_Timer.GetTimers()[#C_Timer.GetTimers()]:Fire()
+            assert.equal(2, #fadeInCalls)
+
+            -- Dismiss posture → nothing should show (no duplicate in queue)
+            SelfCare.HideNotif()
+            C_Timer.GetTimers()[#C_Timer.GetTimers()]:Fire()
+            assert.equal(2, #fadeInCalls)
+        end)
+
         it("does not show queued alert if queue is empty after hide", function()
             SelfCare.ShowNotif(makeAlert("hydrate"))
 
