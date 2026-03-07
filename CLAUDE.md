@@ -60,3 +60,7 @@ When adding new WoW API calls, add corresponding stubs in `spec/stubs/wow_api.lu
 ## Installation (in WoW)
 
 Copy the entire repo folder (containing `SelfCare.toc` and `src/`) to `_retail_\Interface\AddOns\SelfCare\`.
+
+## CurseForge Packaging
+
+The `.pkgmeta` file controls what gets included in the CurseForge release zip. Any file or folder that shouldn't be bundled (dev tooling, docs, CI config, etc.) must be listed under `ignore:` in `.pkgmeta`.
