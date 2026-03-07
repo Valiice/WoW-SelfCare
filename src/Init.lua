@@ -48,6 +48,14 @@ addonFrame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == "SelfCare" then
         SelfCare.ApplyDefaults()
         SelfCare.BuildSettingsPanel()
+        -- Hook the built-in Defaults button to also wipe nextDue / notifPos / stale keys
+        if SettingsPanelMixin and SettingsPanelMixin.OnDefaultsClicked then
+            hooksecurefunc(SettingsPanelMixin, "OnDefaultsClicked", function(self)
+                if self:GetCurrentCategory() == SelfCare.Category then
+                    SelfCare.ResetToDefaults()
+                end
+            end)
+        end
 
     elseif event == "PLAYER_LOGIN" then
         SelfCare.StartAllTimers()
