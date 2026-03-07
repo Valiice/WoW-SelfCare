@@ -68,11 +68,11 @@ function SelfCare.StartTimer(alert)
     end
 
     -- Partial interval remaining → one-shot delay, then normal ticker
-    C_Timer.After(remaining, function()
-        FireAlert(alert)
+    timers[alert.key] = C_Timer.After(remaining, function()
         timers[alert.key] = C_Timer.NewTicker(interval, function()
             FireAlert(alert)
         end)
+        FireAlert(alert)
     end)
 end
 
