@@ -175,6 +175,9 @@ function SelfCare.BuildSettingsPanel()
                 alert.label:lower(), alert.message
             ),
             function(minutes)
+                if SelfCareDB.nextDue then
+                    SelfCareDB.nextDue[alert.key] = nil
+                end
                 SelfCare.StartTimer(alert)
             end
         )

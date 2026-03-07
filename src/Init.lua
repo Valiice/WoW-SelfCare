@@ -124,6 +124,10 @@ function SelfCare.ResetToDefaults()
     SelfCare.ApplyDefaults()
     SelfCare.RestartTimers()
     SelfCare.Print("Settings reset to defaults.")
+    -- Reopen the panel to force sliders/checkboxes to reflect the new DB values
+    if SelfCare.Category and SettingsPanel and SettingsPanel:IsShown() then
+        Settings.OpenToCategory(SelfCare.Category.ID)
+    end
 end
 
 --- Immediately show a test notification for a given alert key.
