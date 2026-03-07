@@ -58,8 +58,9 @@ describe("Timers", function()
             SelfCare.StartTimer(alert)
             local firstTicker = C_Timer.GetTickers()[1]
 
-            -- Start again (simulates settings change)
+            -- Simulate interval change: nextDue cleared, then StartTimer called
             C_Timer.Reset()
+            SelfCareDB.nextDue["hydrate"] = nil
             SelfCare.StartTimer(alert)
 
             -- First ticker was cancelled
@@ -320,12 +321,14 @@ describe("Timers", function()
     -- -------------------------------------------------------------------------
     describe("nextDue persistence", function()
         it("starts full-interval ticker when nextDue is nil (never fired)", function()
+            _G._now = 1000
             SelfCareDB.nextDue["hydrate"] = nil
             SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
 
             assert.equal(0, #C_Timer.GetAfterTimers())
             assert.equal(1, #C_Timer.GetTickers())
             assert.equal(SelfCareDB.hydrateInterval, C_Timer.GetTickers()[1].interval)
+            assert.equal(1000 + SelfCareDB.hydrateInterval, SelfCareDB.nextDue["hydrate"])
         end)
 
         it("uses C_Timer.After with remaining time when nextDue is in the future", function()
@@ -356,6 +359,7 @@ describe("Timers", function()
             assert.equal(0, #C_Timer.GetAfterTimers())
             assert.equal(1, #C_Timer.GetTickers())
             assert.equal(SelfCareDB.hydrateInterval, C_Timer.GetTickers()[1].interval)
+            assert.equal(1000 + SelfCareDB.hydrateInterval, SelfCareDB.nextDue["hydrate"])
         end)
 
         it("writes nextDue to SelfCareDB when alert fires", function()
@@ -368,14 +372,20 @@ describe("Timers", function()
             assert.equal(expected, SelfCareDB.nextDue["hydrate"])
         end)
 
-        it("does not write nextDue when alert is queued (combat)", function()
+        it("writes nextDue at start; does not overwrite while alert is queued in combat", function()
+            _G._now = 1000
             _G._inCombat = true
             SelfCareDB.disableInCombat = true
             local alert = SelfCare.FindAlertByKey("hydrate")
             SelfCare.StartTimer(alert)
-            C_Timer.GetTickers()[1]:Fire()
 
-            assert.is_nil(SelfCareDB.nextDue["hydrate"])
+            -- nextDue is written at start time, not deferred
+            local expectedNextDue = 1000 + SelfCareDB.hydrateInterval
+            assert.equal(expectedNextDue, SelfCareDB.nextDue["hydrate"])
+
+            -- FireAlert is blocked by combat; nextDue remains unchanged
+            C_Timer.GetTickers()[1]:Fire()
+            assert.equal(expectedNextDue, SelfCareDB.nextDue["hydrate"])
         end)
     end)
 

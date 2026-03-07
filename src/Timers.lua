@@ -61,6 +61,7 @@ function SelfCare.StartTimer(alert)
 
     -- Corrupt / missing timestamp → start fresh
     if not remaining or remaining > interval then
+        SelfCareDB.nextDue[alert.key] = time() + interval
         timers[alert.key] = C_Timer.NewTicker(interval, function()
             FireAlert(alert)
         end)

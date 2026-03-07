@@ -175,6 +175,9 @@ function SelfCare.BuildSettingsPanel()
                 alert.label:lower(), alert.message
             ),
             function(minutes)
+                if SelfCareDB.nextDue then
+                    SelfCareDB.nextDue[alert.key] = nil
+                end
                 SelfCare.StartTimer(alert)
             end
         )
@@ -190,6 +193,14 @@ function SelfCare.BuildSettingsPanel()
         "Test All Alerts",
         SelfCare.TestAllAlerts,
         "Fire all three reminders immediately to preview how they look.",
+        true
+    ))
+
+    layout:AddInitializer(CreateSettingsButtonInitializer(
+        "Reset all settings and timer history to factory defaults",
+        "Reset to Defaults",
+        SelfCare.ResetToDefaults,
+        "Resets all settings to defaults and restarts all reminder timers from scratch. Use this if timers feel off or stuck.",
         true
     ))
 
