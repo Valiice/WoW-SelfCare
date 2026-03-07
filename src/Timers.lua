@@ -18,7 +18,7 @@ end
 local function IsBlocked()
     if SelfCareDB.disableInCombat   and InCombatLockdown()                      then return true end
     if SelfCareDB.disableInCutscene and (MovieFrame and MovieFrame:IsShown())    then return true end
-    if SelfCareDB.disableWhenAFK    and IsAFK()                                  then return true end
+    if SelfCareDB.disableWhenAFK    and UnitIsAFK("player")                      then return true end
     return false
 end
 
@@ -31,6 +31,8 @@ local function FireAlert(alert)
         table.insert(pendingAlerts, alert)
         return
     end
+    local intervalKey = SelfCare.IntervalKey(alert)
+    SelfCareDB.nextDue[alert.key] = time() + SelfCareDB[intervalKey]
     SelfCare.ShowNotif(alert)
 end
 
@@ -45,8 +47,32 @@ function SelfCare.StartTimer(alert)
     local interval = SelfCareDB[intervalKey]
     if not interval or interval <= 0 then return end
 
-    timers[alert.key] = C_Timer.NewTicker(interval, function()
+    local nextDue   = SelfCareDB.nextDue[alert.key]
+    local remaining = nextDue and (nextDue - time())
+
+    -- Corrupt / missing timestamp → start fresh
+    if not remaining or remaining > interval then
+        timers[alert.key] = C_Timer.NewTicker(interval, function()
+            FireAlert(alert)
+        end)
+        return
+    end
+
+    -- Overdue → fire immediately, then resume normal cadence
+    if remaining <= 0 then
         FireAlert(alert)
+        timers[alert.key] = C_Timer.NewTicker(interval, function()
+            FireAlert(alert)
+        end)
+        return
+    end
+
+    -- Partial interval remaining → one-shot delay, then normal ticker
+    C_Timer.After(remaining, function()
+        FireAlert(alert)
+        timers[alert.key] = C_Timer.NewTicker(interval, function()
+            FireAlert(alert)
+        end)
     end)
 end
 

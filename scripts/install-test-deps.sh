@@ -15,6 +15,27 @@
 set -e
 
 DEST="lua_modules"
+
+# If running inside a worktree, reuse the root repo's lua_modules/ via symlink.
+# git rev-parse --git-common-dir returns ".git" (relative) in the main repo,
+# but an absolute path to the shared .git dir when inside a linked worktree.
+GIT_COMMON_DIR=$(git rev-parse --git-common-dir)
+if [ "$GIT_COMMON_DIR" != ".git" ] && [ "$GIT_COMMON_DIR" != "./.git" ]; then
+  # We're in a linked worktree — parent of the common .git is the main repo root.
+  MAIN_REPO=$(dirname "$GIT_COMMON_DIR")
+  # Normalize to MSYS/Unix path so symlink target is portable.
+  MAIN_REPO=$(cygpath -u "$MAIN_REPO" 2>/dev/null || echo "$MAIN_REPO")
+  ROOT_MODULES="$MAIN_REPO/lua_modules"
+  if [ -d "$ROOT_MODULES" ]; then
+    echo "==> Worktree detected — symlinking lua_modules/ from repo root..."
+    ln -sfn "$ROOT_MODULES" "$DEST"
+    echo ""
+    echo "Done! lua_modules/ is ready (symlinked)."
+    echo "Run tests with:  bash scripts/run-tests.sh"
+    exit 0
+  fi
+fi
+
 mkdir -p "$DEST"
 
 echo "==> Downloading busted 2.3.0..."

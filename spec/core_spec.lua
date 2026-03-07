@@ -138,6 +138,11 @@ describe("Core", function()
             assert.is_table(SelfCareDB)
             assert.equal(SelfCare.DEFAULTS.hydrateInterval, SelfCareDB.hydrateInterval)
         end)
+
+        it("initialises nextDue as an empty table", function()
+            SelfCare.ApplyDefaults()
+            assert.is_table(SelfCareDB.nextDue)
+        end)
     end)
 
     -- -------------------------------------------------------------------------

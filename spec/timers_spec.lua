@@ -257,6 +257,68 @@ describe("Timers", function()
     end)
 
     -- -------------------------------------------------------------------------
+    describe("nextDue persistence", function()
+        it("starts full-interval ticker when nextDue is nil (never fired)", function()
+            SelfCareDB.nextDue["hydrate"] = nil
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+
+            assert.equal(0, #C_Timer.GetAfterTimers())
+            assert.equal(1, #C_Timer.GetTickers())
+            assert.equal(SelfCareDB.hydrateInterval, C_Timer.GetTickers()[1].interval)
+        end)
+
+        it("uses C_Timer.After with remaining time when nextDue is in the future", function()
+            _G._now = 1000
+            SelfCareDB.nextDue["hydrate"] = 1000 + 300  -- 300 seconds remaining
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+
+            assert.equal(1, #C_Timer.GetAfterTimers())
+            assert.equal(300, C_Timer.GetAfterTimers()[1].delay)
+            assert.equal(0, #C_Timer.GetTickers())
+        end)
+
+        it("fires immediately and starts full ticker when nextDue is overdue", function()
+            _G._now = 2000
+            SelfCareDB.nextDue["hydrate"] = 1000  -- 1000 seconds in the past
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+
+            assert.equal(1, #showNotifCalls)
+            assert.equal(1, #C_Timer.GetTickers())
+            assert.equal(SelfCareDB.hydrateInterval, C_Timer.GetTickers()[1].interval)
+        end)
+
+        it("starts fresh full ticker when nextDue is corrupt (> interval)", function()
+            _G._now = 1000
+            SelfCareDB.nextDue["hydrate"] = 1000 + SelfCareDB.hydrateInterval + 999
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+
+            assert.equal(0, #C_Timer.GetAfterTimers())
+            assert.equal(1, #C_Timer.GetTickers())
+            assert.equal(SelfCareDB.hydrateInterval, C_Timer.GetTickers()[1].interval)
+        end)
+
+        it("writes nextDue to SelfCareDB when alert fires", function()
+            _G._now = 5000
+            local alert = SelfCare.FindAlertByKey("hydrate")
+            SelfCare.StartTimer(alert)
+            C_Timer.GetTickers()[1]:Fire()
+
+            local expected = 5000 + SelfCareDB.hydrateInterval
+            assert.equal(expected, SelfCareDB.nextDue["hydrate"])
+        end)
+
+        it("does not write nextDue when alert is queued (combat)", function()
+            _G._inCombat = true
+            SelfCareDB.disableInCombat = true
+            local alert = SelfCare.FindAlertByKey("hydrate")
+            SelfCare.StartTimer(alert)
+            C_Timer.GetTickers()[1]:Fire()
+
+            assert.is_nil(SelfCareDB.nextDue["hydrate"])
+        end)
+    end)
+
+    -- -------------------------------------------------------------------------
     describe("RestartTimers", function()
         it("cancels old tickers and creates new ones", function()
             SelfCare.StartAllTimers()
