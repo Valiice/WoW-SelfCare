@@ -18,7 +18,7 @@ function InCombatLockdown()
     return _G._inCombat
 end
 
-function IsAFK()
+function UnitIsAFK(unit)
     return _G._isAFK
 end
 

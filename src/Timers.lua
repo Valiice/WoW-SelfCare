@@ -18,7 +18,7 @@ end
 local function IsBlocked()
     if SelfCareDB.disableInCombat   and InCombatLockdown()                      then return true end
     if SelfCareDB.disableInCutscene and (MovieFrame and MovieFrame:IsShown())    then return true end
-    if SelfCareDB.disableWhenAFK    and IsAFK()                                  then return true end
+    if SelfCareDB.disableWhenAFK    and UnitIsAFK("player")                      then return true end
     return false
 end
 
