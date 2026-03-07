@@ -197,7 +197,7 @@ function SelfCare.BuildSettingsPanel()
         "Reset all settings and timer history to factory defaults",
         "Reset to Defaults",
         SelfCare.ResetToDefaults,
-        "Wipes saved settings, nextDue timestamps, and position. Restarts all timers fresh.",
+        "Resets all settings to defaults and restarts all reminder timers from scratch. Use this if timers feel off or stuck.",
         true
     ))
 
