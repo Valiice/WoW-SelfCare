@@ -298,7 +298,7 @@ describe("Timers", function()
             assert.equal(expected, SelfCareDB.nextDue["hydrate"])
         end)
 
-        it("cancels old ticker and creates a fresh After timer after flushing", function()
+        it("does not cancel the original ticker or create new timers after flushing", function()
             _G._now = 1000
             _G._isAFK = true
             SelfCareDB.disableWhenAFK = true
@@ -311,10 +311,11 @@ describe("Timers", function()
             C_Timer.Reset()  -- isolate what FlushPending creates
             SelfCare.FlushPending()
 
-            -- Old ticker was cancelled; a new After timer replaces it
-            assert.is_true(oldTicker.cancelled)
-            assert.equal(1, #C_Timer.GetAfterTimers())
-            assert.equal(SelfCareDB.hydrateInterval, C_Timer.GetAfterTimers()[1].delay)
+            -- Original ticker must NOT be cancelled — it keeps running at its original cadence
+            assert.is_false(oldTicker.cancelled)
+            -- FlushPending must not create any new timers
+            assert.equal(0, #C_Timer.GetAfterTimers())
+            assert.equal(0, #C_Timer.GetTickers())
         end)
     end)
 
@@ -440,6 +441,22 @@ describe("Timers", function()
             end
             -- New tickers were created
             assert.equal(3, #C_Timer.GetTickers())
+        end)
+
+        it("clears pendingAlerts so stale queued alerts are discarded on reset", function()
+            -- Queue an alert during combat
+            _G._inCombat = true
+            SelfCareDB.disableInCombat = true
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            C_Timer.GetTickers()[1]:Fire()  -- queued
+
+            -- Reset timers (out of combat now)
+            _G._inCombat = false
+            SelfCare.RestartTimers()
+
+            -- The stale pending alert must be gone; FlushPending should not fire it
+            SelfCare.FlushPending()
+            assert.equal(0, #showNotifCalls)
         end)
 
         it("clears nextDue so interval changes start fresh full-interval tickers", function()
