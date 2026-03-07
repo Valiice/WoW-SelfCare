@@ -319,6 +319,41 @@ describe("Timers", function()
     end)
 
     -- -------------------------------------------------------------------------
+    describe("After timer cancellation", function()
+        it("cancels pending After timer when StartTimer is called again", function()
+            _G._now = 1000
+            SelfCareDB.nextDue["hydrate"] = 1300  -- 300s remaining
+
+            -- First call — goes down C_Timer.After path
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            local firstAfter = C_Timer.GetAfterTimers()[1]
+            assert.is_false(firstAfter.cancelled)
+
+            -- Second call (simulates /reload or settings change)
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+
+            -- First After must be cancelled so it can't orphan a ticker
+            assert.is_true(firstAfter.cancelled)
+        end)
+
+        it("fires alert exactly once when StartTimer is called twice before After fires", function()
+            _G._now = 1000
+            SelfCareDB.nextDue["hydrate"] = 1300  -- 300s remaining
+
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))  -- reload
+
+            -- Fire every After timer (first is cancelled, second is not)
+            for _, t in ipairs(C_Timer.GetAfterTimers()) do
+                t:Fire()
+            end
+
+            -- Alert should fire exactly once, not twice
+            assert.equal(1, #showNotifCalls)
+        end)
+    end)
+
+    -- -------------------------------------------------------------------------
     describe("RestartTimers", function()
         it("cancels old tickers and creates new ones", function()
             SelfCare.StartAllTimers()
