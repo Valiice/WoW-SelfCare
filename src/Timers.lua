@@ -31,6 +31,8 @@ local function FireAlert(alert)
         table.insert(pendingAlerts, alert)
         return
     end
+    local intervalKey = SelfCare.IntervalKey(alert)
+    SelfCareDB.nextDue[alert.key] = time() + SelfCareDB[intervalKey]
     SelfCare.ShowNotif(alert)
 end
 

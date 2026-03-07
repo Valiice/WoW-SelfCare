@@ -257,6 +257,29 @@ describe("Timers", function()
     end)
 
     -- -------------------------------------------------------------------------
+    describe("nextDue persistence", function()
+        it("writes nextDue to SelfCareDB when alert fires", function()
+            _G._now = 5000
+            local alert = SelfCare.FindAlertByKey("hydrate")
+            SelfCare.StartTimer(alert)
+            C_Timer.GetTickers()[1]:Fire()
+
+            local expected = 5000 + SelfCareDB.hydrateInterval
+            assert.equal(expected, SelfCareDB.nextDue["hydrate"])
+        end)
+
+        it("does not write nextDue when alert is queued (combat)", function()
+            _G._inCombat = true
+            SelfCareDB.disableInCombat = true
+            local alert = SelfCare.FindAlertByKey("hydrate")
+            SelfCare.StartTimer(alert)
+            C_Timer.GetTickers()[1]:Fire()
+
+            assert.is_nil(SelfCareDB.nextDue["hydrate"])
+        end)
+    end)
+
+    -- -------------------------------------------------------------------------
     describe("RestartTimers", function()
         it("cancels old tickers and creates new ones", function()
             SelfCare.StartAllTimers()
