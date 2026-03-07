@@ -5,6 +5,35 @@
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
+-- Local helpers for /selfcare debug
+-- ---------------------------------------------------------------------------
+local function FormatInterval(s)
+    local h = math.floor(s / 3600)
+    local m = math.floor((s % 3600) / 60)
+    if h > 0 then
+        return string.format("%dh %dm", h, m)
+    elseif m > 0 then
+        return string.format("%d min", m)
+    else
+        return string.format("%ds", s)
+    end
+end
+
+local function FormatRemaining(s)
+    if s <= 0 then return "overdue" end
+    local h = math.floor(s / 3600)
+    local m = math.floor((s % 3600) / 60)
+    local sec = s % 60
+    if h > 0 then
+        return string.format("%dh %dm", h, m)
+    elseif m > 0 then
+        return string.format("%dm %ds", m, sec)
+    else
+        return string.format("%ds", sec)
+    end
+end
+
+-- ---------------------------------------------------------------------------
 -- Event handling
 -- ---------------------------------------------------------------------------
 local addonFrame = CreateFrame("Frame", "SelfCareAddonFrame", UIParent)
@@ -41,6 +70,30 @@ SlashCmdList["SELFCARE"] = function(msg)
 
     if cmd == "test" then
         SelfCare.TestAllAlerts()
+        return
+    end
+
+    if cmd == "debug" then
+        SelfCare.Print("SelfCare Debug:")
+        for _, alert in ipairs(SelfCare.ALERTS) do
+            local enabledKey  = SelfCare.EnabledKey(alert)
+            local intervalKey = SelfCare.IntervalKey(alert)
+            if not SelfCareDB[enabledKey] then
+                SelfCare.Print(string.format("  %s — [disabled]", alert.key))
+            else
+                local interval = SelfCareDB[intervalKey]
+                local nextDue  = SelfCareDB.nextDue and SelfCareDB.nextDue[alert.key]
+                if not nextDue then
+                    SelfCare.Print(string.format("  %s — [pending first fire]  [%s interval]",
+                        alert.key, FormatInterval(interval)))
+                else
+                    local remaining = nextDue - time()
+                    SelfCare.Print(string.format("  %s — due %s (in %s)  [%s interval]",
+                        alert.key, date("%H:%M:%S", nextDue),
+                        FormatRemaining(remaining), FormatInterval(interval)))
+                end
+            end
+        end
         return
     end
 
