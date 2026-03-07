@@ -15,6 +15,9 @@ _G._inCutscene  = false
 _G._isAFK       = false
 _G._now         = 1000  -- controllable fake timestamp
 
+-- WoW exposes date() as a global (same signature as os.date)
+date = os.date
+
 function time()
     return _G._now
 end
@@ -187,7 +190,17 @@ Settings = {
         local layout = {
             AddInitializer = function(self, initializer) return initializer end,
         }
-        return { name = name }, layout
+        local category = {
+            name = name,
+            SetRevertCallback = function(self, fn)
+                self._revertCallback = fn
+            end,
+            -- Test helper: trigger the revert as if user clicked Defaults
+            _TriggerRevert = function(self)
+                if self._revertCallback then self._revertCallback() end
+            end,
+        }
+        return category, layout
     end,
 
     RegisterAddOnSetting = function(category, variable, variableKey, variableTbl, varType, displayName, default)

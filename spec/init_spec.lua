@@ -130,6 +130,7 @@ describe("Init", function()
             SlashCmdList["SELFCARE"]("  test  ")
             assert.is_true(called)
         end)
+
     end)
 
     -- -------------------------------------------------------------------------
