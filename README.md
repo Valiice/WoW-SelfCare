@@ -32,6 +32,7 @@ A World of Warcraft addon that gently reminds you to hydrate, check your posture
 |---|---|
 | `/selfcare` | Opens the settings panel |
 | `/selfcare test` | Fires all three alerts immediately |
+| `/selfcare reset` | Restarts all timers from now (useful if reminders feel off-schedule) |
 | `/selfcare debug` | Prints timer status to chat (due time, interval, disabled/pending per alert) |
 | `/run SelfCare_TestAlert("hydrate")` | Test a specific alert |
 | `/run SelfCare_RestartTimers()` | Restart all timers (useful after manual DB edits) |
@@ -41,7 +42,7 @@ A World of Warcraft addon that gently reminds you to hydrate, check your posture
 All settings are accessible from the in-game Interface Options panel:
 
 - **Global:** Disable during combat, cutscenes, or AFK; print to chat; auto-dismiss delay; alert sound
-- **Reset to Defaults** button — fully wipes saved state and restarts all timers fresh
+- **Reset Timers** button — restarts all timers from now (use if reminders feel off-schedule)
 - **Per-alert:** Enable/disable each reminder, adjust interval from 5 to 300 minutes
 
 ## Requirements
