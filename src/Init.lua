@@ -73,6 +73,11 @@ SlashCmdList["SELFCARE"] = function(msg)
         return
     end
 
+    if cmd == "reset" then
+        SelfCare.RestartTimers()
+        return
+    end
+
     if cmd == "debug" then
         SelfCare.Print("SelfCare Debug:")
         for _, alert in ipairs(SelfCare.ALERTS) do
@@ -124,12 +129,6 @@ function SelfCare.ResetToDefaults()
     SelfCare.ApplyDefaults()
     SelfCare.RestartTimers()
     SelfCare.Print("Settings reset to defaults.")
-    -- Hide and reopen the panel so sliders/checkboxes re-render from the new DB values
-    -- (OpenToCategory alone is a no-op when already on that category)
-    if SelfCare.Category and SettingsPanel and SettingsPanel:IsShown() then
-        SettingsPanel:Hide()
-        Settings.OpenToCategory(SelfCare.Category.ID)
-    end
 end
 
 --- Immediately show a test notification for a given alert key.

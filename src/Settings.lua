@@ -197,10 +197,10 @@ function SelfCare.BuildSettingsPanel()
     ))
 
     layout:AddInitializer(CreateSettingsButtonInitializer(
-        "Reset all settings and timer history to factory defaults",
-        "Reset to Defaults",
-        SelfCare.ResetToDefaults,
-        "Resets all settings to defaults and restarts all reminder timers from scratch. Use this if timers feel off or stuck.",
+        "Timers feeling off or out of sync?",
+        "Reset Timers",
+        SelfCare.RestartTimers,
+        "Restarts all timers from now using your current interval settings. Does not change any settings.",
         true
     ))
 
