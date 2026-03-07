@@ -117,6 +117,9 @@ function SelfCare.BuildSettingsPanel()
     MakeCheckbox("disableInCutscene", "Disable during cutscenes",
         "Hold alerts during in-game cinematics.")
 
+    MakeCheckbox("disableWhenAFK",    "Pause during AFK",
+        "Alerts that fire while you are AFK are queued and shown when you return.")
+
     MakeCheckbox("printToChat",       "Print reminders to chat",
         "Also print the reminder message to your chat box.")
 

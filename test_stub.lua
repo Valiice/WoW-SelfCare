@@ -375,6 +375,7 @@ local checks = {
     {"breakEnabled",    true},
     {"breakInterval",   8400},
     {"disableInCombat", true},
+    {"disableWhenAFK",  true},
     {"printToChat",     true},
     {"autoDismiss",     true},
     {"alertSound",      808},
