@@ -105,15 +105,17 @@ describe("Notifications", function()
             assert.is_true(found, "No dismiss timer found with delay=15")
         end)
 
-        it("cancels any pending dismiss timer before showing a new notif", function()
-            SelfCare.ShowNotif(makeAlert("hydrate"))
+        it("queues second alert instead of overwriting when frame is visible", function()
+            SelfCare.ShowNotif(makeAlert("hydrate", "Drink water!"))
             local firstDismissTimer = C_Timer.GetTimers()[1]
 
-            -- Show another notification immediately
-            SelfCare.ShowNotif(makeAlert("posture"))
+            -- Show another while frame is visible — should queue, not overwrite
+            SelfCare.ShowNotif(makeAlert("posture", "Check posture!"))
 
-            assert.is_true(firstDismissTimer.cancelled,
-                "Previous dismiss timer should have been cancelled")
+            -- Dismiss timer for first alert should NOT have been cancelled
+            assert.is_false(firstDismissTimer.cancelled)
+            -- Only one fade-in (second was queued, not shown)
+            assert.equal(1, #fadeInCalls)
         end)
 
         it("shows the notification frame", function()
@@ -187,6 +189,61 @@ describe("Notifications", function()
             SelfCareDB.autoDismiss = false
             SelfCare.ShowNotif(makeAlert("hydrate"))
             assert.equal(1, #fadeInCalls)
+        end)
+    end)
+
+    -- -------------------------------------------------------------------------
+    describe("notification queue", function()
+        it("shows queued alert after manual HideNotif", function()
+            SelfCare.ShowNotif(makeAlert("hydrate"))
+            SelfCare.ShowNotif(makeAlert("posture"))  -- queued
+
+            assert.equal(1, #fadeInCalls)
+
+            SelfCare.HideNotif()
+            local timers = C_Timer.GetTimers()
+            timers[#timers]:Fire()
+
+            assert.equal(2, #fadeInCalls)
+        end)
+
+        it("shows queued alert after auto-dismiss fires", function()
+            SelfCare.ShowNotif(makeAlert("hydrate"))
+            SelfCare.ShowNotif(makeAlert("posture"))  -- queued
+
+            local dismissTimer = C_Timer.GetTimers()[1]
+            dismissTimer:Fire()  -- calls HideNotif internally
+
+            local timers = C_Timer.GetTimers()
+            timers[#timers]:Fire()
+
+            assert.equal(2, #fadeInCalls)
+        end)
+
+        it("shows alerts in FIFO order", function()
+            SelfCare.ShowNotif(makeAlert("hydrate",  "First"))
+            SelfCare.ShowNotif(makeAlert("posture",  "Second"))
+            SelfCare.ShowNotif(makeAlert("break",    "Third"))
+
+            assert.equal(1, #fadeInCalls)
+
+            SelfCare.HideNotif()
+            C_Timer.GetTimers()[#C_Timer.GetTimers()]:Fire()
+            assert.equal(2, #fadeInCalls)
+
+            SelfCare.HideNotif()
+            C_Timer.GetTimers()[#C_Timer.GetTimers()]:Fire()
+            assert.equal(3, #fadeInCalls)
+        end)
+
+        it("does not show queued alert if queue is empty after hide", function()
+            SelfCare.ShowNotif(makeAlert("hydrate"))
+
+            SelfCare.HideNotif()
+            local countBefore = #fadeInCalls
+            C_Timer.GetTimers()[#C_Timer.GetTimers()]:Fire()
+
+            assert.equal(countBefore, #fadeInCalls)
         end)
     end)
 
