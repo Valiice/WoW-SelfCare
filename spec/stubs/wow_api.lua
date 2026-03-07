@@ -13,6 +13,11 @@
 _G._inCombat    = false
 _G._inCutscene  = false
 _G._isAFK       = false
+_G._now         = 1000  -- controllable fake timestamp
+
+function time()
+    return _G._now
+end
 
 function InCombatLockdown()
     return _G._inCombat
@@ -242,7 +247,8 @@ SlashCmdList = SlashCmdList or {}
 function WowStubs_Reset()
     rawset(_G, "_inCombat",        false)
     rawset(_G, "_inCutscene",      false)
-    rawset(_G, "_isAFK",        false)
+    rawset(_G, "_isAFK",           false)
+    rawset(_G, "_now",             1000)
     rawset(_G, "SelfCareDB",       nil)
     rawset(_G, "SelfCare",         nil)
     rawset(_G, "SlashCmdList",     {})
