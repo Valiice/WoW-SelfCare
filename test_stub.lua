@@ -74,6 +74,7 @@ end
 
 UIParent = MakeFakeFrame("Frame", "UIParent")
 
+function time() return os.time() end
 function InCombatLockdown() return false end
 function UnitIsAFK(unit) return false end
 
