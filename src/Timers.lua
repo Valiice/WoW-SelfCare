@@ -89,12 +89,15 @@ function SelfCare.StopAllTimers()
 end
 
 --- Show any queued alerts now that we are out of a blocked state.
+--- Calls FireAlert (not ShowNotif) so nextDue is updated, then restarts
+--- the timer so the ticker fires a full interval from now — not immediately.
 function SelfCare.FlushPending()
     if not IsBlocked() and #pendingAlerts > 0 then
         local toFire = pendingAlerts
         pendingAlerts = {}
         for _, alert in ipairs(toFire) do
-            SelfCare.ShowNotif(alert)
+            FireAlert(alert)
+            SelfCare.StartTimer(alert)
         end
     end
 end
@@ -102,6 +105,7 @@ end
 --- Stop and restart all timers (e.g., after manually editing SelfCareDB).
 function SelfCare.RestartTimers()
     SelfCare.StopAllTimers()
+    SelfCareDB.nextDue = {}  -- clear so settings changes start fresh, not mid-old-cycle
     SelfCare.StartAllTimers()
     SelfCare.Print("Timers restarted.")
 end
