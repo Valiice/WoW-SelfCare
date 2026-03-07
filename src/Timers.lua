@@ -7,6 +7,7 @@
 
 local timers        = {}  -- active C_Timer handles, keyed by alert.key
 local pendingAlerts = {}  -- alerts queued while in combat / cutscene
+local lastFired     = {}  -- last fire timestamp per alert key (in-memory, resets on reload)
 
 local function CancelTimer(key)
     if timers[key] then
@@ -32,7 +33,15 @@ local function FireAlert(alert)
         return
     end
     local intervalKey = SelfCare.IntervalKey(alert)
-    SelfCareDB.nextDue[alert.key] = time() + SelfCareDB[intervalKey]
+    local interval    = SelfCareDB[intervalKey]
+    -- Guard: skip if we fired recently (within half an interval).
+    -- Uses a file-local table so both fresh-start fires and mid-cycle duplicates
+    -- are caught even when SelfCareDB.nextDue is nil (e.g., after RestartTimers).
+    local now  = time()
+    local last = lastFired[alert.key]
+    if last and (now - last) < (interval / 2) then return end
+    lastFired[alert.key]          = now
+    SelfCareDB.nextDue[alert.key] = now + interval
     SelfCare.ShowNotif(alert)
 end
 

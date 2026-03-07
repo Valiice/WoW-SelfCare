@@ -75,6 +75,33 @@ describe("Timers", function()
             assert.equal(1, #showNotifCalls)
             assert.equal("hydrate", showNotifCalls[1].key)
         end)
+
+        it("does not fire the same alert twice in quick succession (double-timer guard)", function()
+            _G._now = 1000
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+
+            -- First fire sets nextDue
+            C_Timer.GetTickers()[1]:Fire()
+            assert.equal(1, #showNotifCalls)
+
+            -- Duplicate fire (simulates an orphaned second timer) — must be suppressed
+            C_Timer.GetTickers()[1]:Fire()
+            assert.equal(1, #showNotifCalls)
+        end)
+
+        it("fires again after a full interval has elapsed", function()
+            _G._now = 1000
+            local interval = SelfCareDB.hydrateInterval
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+
+            C_Timer.GetTickers()[1]:Fire()
+            assert.equal(1, #showNotifCalls)
+
+            -- Advance time by a full interval — next fire is legitimate
+            _G._now = 1000 + interval
+            C_Timer.GetTickers()[1]:Fire()
+            assert.equal(2, #showNotifCalls)
+        end)
     end)
 
     -- -------------------------------------------------------------------------
