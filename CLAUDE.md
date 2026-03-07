@@ -27,7 +27,7 @@ Multi-file Lua addon with a TOC file. No build step required.
 6. Timer engine — `C_Timer.NewTicker` per alert, combat/cutscene deferral via `pendingAlerts` queue
 7. Event handler — ADDON_LOADED, PLAYER_LOGIN, PLAYER_REGEN_ENABLED, CINEMATIC_STOP
 8. Settings panel — post-11.0.2 Settings API (`RegisterAddOnSetting` with `variableKey + variableTbl` signature)
-9. Slash command — `/selfcare` opens settings, `/selfcare test` fires all alerts, `/selfcare debug` prints timer snapshot to chat
+9. Slash command — `/selfcare` opens settings, `/selfcare test` fires all alerts, `/selfcare reset` restarts all timers from now, `/selfcare debug` prints timer snapshot to chat
 10. Public API — `SelfCare_RestartTimers()`, `SelfCare_TestAlert(key)`
 
 **SavedVariables:** `SelfCareDB` (registered in TOC)
