@@ -58,8 +58,9 @@ describe("Timers", function()
             SelfCare.StartTimer(alert)
             local firstTicker = C_Timer.GetTickers()[1]
 
-            -- Start again (simulates settings change)
+            -- Simulate interval change: nextDue cleared, then StartTimer called
             C_Timer.Reset()
+            SelfCareDB.nextDue["hydrate"] = nil
             SelfCare.StartTimer(alert)
 
             -- First ticker was cancelled

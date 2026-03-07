@@ -324,10 +324,15 @@ describe("Init", function()
             SelfCare.ApplyDefaults()
         end)
 
-        it("wipes nextDue", function()
+        it("wipes nextDue and writes fresh timestamps via RestartTimers", function()
+            _G._now = 1000
             SelfCareDB.nextDue = { hydrate = 9999, posture = 9999 }
             SelfCare.ResetToDefaults()
-            assert.same({}, SelfCareDB.nextDue)
+            -- Stale values gone; each enabled alert gets a fresh timestamp at start
+            for _, alert in ipairs(SelfCare.ALERTS) do
+                local expected = 1000 + SelfCareDB[SelfCare.IntervalKey(alert)]
+                assert.equal(expected, SelfCareDB.nextDue[alert.key])
+            end
         end)
 
         it("wipes notifPos", function()
