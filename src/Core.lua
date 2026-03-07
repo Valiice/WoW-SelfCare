@@ -56,6 +56,7 @@ SelfCare.DEFAULTS = {
     autoDismiss       = true,        -- true = auto-dismiss after dismissDelay seconds; click always dismisses
     dismissDelay      = 10,          -- seconds before auto-dismiss (when autoDismiss = true)
     alertSound        = 808,         -- sound ID to play on notification (0 = none)
+    nextDue           = {},              -- next-due Unix timestamps keyed by alert key
 }
 
 -- ---------------------------------------------------------------------------
