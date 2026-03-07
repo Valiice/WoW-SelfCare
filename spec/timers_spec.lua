@@ -254,6 +254,40 @@ describe("Timers", function()
             SelfCare.FlushPending()
             assert.equal(0, #showNotifCalls)
         end)
+
+        it("updates nextDue when flushing a pending alert", function()
+            _G._now = 1000
+            _G._isAFK = true
+            SelfCareDB.disableWhenAFK = true
+
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            C_Timer.GetTickers()[1]:Fire()  -- queued while AFK
+
+            _G._isAFK = false
+            SelfCare.FlushPending()
+
+            local expected = 1000 + SelfCareDB.hydrateInterval
+            assert.equal(expected, SelfCareDB.nextDue["hydrate"])
+        end)
+
+        it("cancels old ticker and creates a fresh After timer after flushing", function()
+            _G._now = 1000
+            _G._isAFK = true
+            SelfCareDB.disableWhenAFK = true
+
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            local oldTicker = C_Timer.GetTickers()[1]
+            oldTicker:Fire()  -- queued while AFK
+
+            _G._isAFK = false
+            C_Timer.Reset()  -- isolate what FlushPending creates
+            SelfCare.FlushPending()
+
+            -- Old ticker was cancelled; a new After timer replaces it
+            assert.is_true(oldTicker.cancelled)
+            assert.equal(1, #C_Timer.GetAfterTimers())
+            assert.equal(SelfCareDB.hydrateInterval, C_Timer.GetAfterTimers()[1].delay)
+        end)
     end)
 
     -- -------------------------------------------------------------------------
@@ -368,6 +402,19 @@ describe("Timers", function()
                 assert.is_true(t.cancelled)
             end
             -- New tickers were created
+            assert.equal(3, #C_Timer.GetTickers())
+        end)
+
+        it("clears nextDue so interval changes start fresh full-interval tickers", function()
+            _G._now = 1000
+            -- nextDue within new interval — would normally cause C_Timer.After
+            SelfCareDB.nextDue["hydrate"] = 1000 + 60   -- 60s remaining
+            SelfCareDB.hydrateInterval    = 300          -- new 5-min interval
+
+            SelfCare.RestartTimers()
+
+            -- Should start fresh (no After timer), not resume from stale nextDue
+            assert.equal(0, #C_Timer.GetAfterTimers())
             assert.equal(3, #C_Timer.GetTickers())
         end)
     end)
