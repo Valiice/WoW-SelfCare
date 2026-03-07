@@ -59,31 +59,45 @@ function SelfCare.StartTimer(alert)
     local nextDue   = SelfCareDB.nextDue[alert.key]
     local remaining = nextDue and (nextDue - time())
 
+    local key = alert.key  -- capture for closures
+
     -- Corrupt / missing timestamp → start fresh
     if not remaining or remaining > interval then
-        SelfCareDB.nextDue[alert.key] = time() + interval
-        timers[alert.key] = C_Timer.NewTicker(interval, function()
+        SelfCareDB.nextDue[key] = time() + interval
+        local handle
+        handle = C_Timer.NewTicker(interval, function()
+            if timers[key] ~= handle then return end  -- stale: superseded by Cancel+restart
             FireAlert(alert)
         end)
+        timers[key] = handle
         return
     end
 
     -- Overdue → fire immediately, then resume normal cadence
     if remaining <= 0 then
         FireAlert(alert)
-        timers[alert.key] = C_Timer.NewTicker(interval, function()
+        local handle
+        handle = C_Timer.NewTicker(interval, function()
+            if timers[key] ~= handle then return end
             FireAlert(alert)
         end)
+        timers[key] = handle
         return
     end
 
     -- Partial interval remaining → one-shot delay, then normal ticker
-    timers[alert.key] = C_Timer.After(remaining, function()
-        timers[alert.key] = C_Timer.NewTicker(interval, function()
+    local handle
+    handle = C_Timer.After(remaining, function()
+        if timers[key] ~= handle then return end  -- stale: superseded by Cancel+restart
+        local ticker
+        ticker = C_Timer.NewTicker(interval, function()
+            if timers[key] ~= ticker then return end
             FireAlert(alert)
         end)
+        timers[key] = ticker
         FireAlert(alert)
     end)
+    timers[key] = handle
 end
 
 function SelfCare.StartAllTimers()

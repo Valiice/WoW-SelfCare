@@ -391,6 +391,68 @@ describe("Timers", function()
     end)
 
     -- -------------------------------------------------------------------------
+    describe("stale handle guard", function()
+        -- Reproduces the WoW C_Timer race condition: Cancel() is called but
+        -- the callback fires anyway in the same frame (already queued by WoW).
+        -- The callback must be a no-op when its handle is no longer current.
+
+        it("After callback is a no-op when superseded by a new StartTimer", function()
+            _G._now = 1000
+            SelfCareDB.nextDue["hydrate"] = 1133  -- 133s remaining → takes After path
+
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            local staleAfter = C_Timer.GetAfterTimers()[1]
+
+            -- Reset (cancels staleAfter, starts fresh NewTicker)
+            C_Timer.Reset()
+            SelfCareDB.nextDue["hydrate"] = nil
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+
+            -- Simulate WoW race: stale After fires despite Cancel
+            staleAfter.cancelled = false
+            staleAfter:Fire()
+
+            -- Must not show the alert or overwrite the fresh ticker
+            assert.equal(0, #showNotifCalls)
+            assert.equal(1, #C_Timer.GetTickers())   -- only the fresh ticker
+            assert.equal(0, #C_Timer.GetAfterTimers())
+        end)
+
+        it("NewTicker callback is a no-op when superseded by a new StartTimer", function()
+            _G._now = 1000
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            local staleTicker = C_Timer.GetTickers()[1]
+
+            -- Replace with a new timer
+            C_Timer.Reset()
+            SelfCareDB.nextDue["hydrate"] = nil
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+
+            -- Simulate WoW race: stale ticker fires despite Cancel
+            staleTicker.cancelled = false
+            staleTicker:Fire()
+
+            assert.equal(0, #showNotifCalls)
+        end)
+
+        it("After callback is a no-op when superseded by RestartTimers", function()
+            _G._now = 1000
+            SelfCareDB.nextDue["hydrate"] = 1133
+
+            SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
+            local staleAfter = C_Timer.GetAfterTimers()[1]
+
+            SelfCare.RestartTimers()
+            C_Timer.Reset()
+
+            staleAfter.cancelled = false
+            staleAfter:Fire()
+
+            assert.equal(0, #showNotifCalls)
+        end)
+    end)
+
+    -- -------------------------------------------------------------------------
     describe("After timer cancellation", function()
         it("cancels pending After timer when StartTimer is called again", function()
             _G._now = 1000
