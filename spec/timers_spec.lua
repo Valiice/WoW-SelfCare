@@ -370,6 +370,19 @@ describe("Timers", function()
             -- New tickers were created
             assert.equal(3, #C_Timer.GetTickers())
         end)
+
+        it("clears nextDue so interval changes start fresh full-interval tickers", function()
+            _G._now = 1000
+            -- nextDue within new interval — would normally cause C_Timer.After
+            SelfCareDB.nextDue["hydrate"] = 1000 + 60   -- 60s remaining
+            SelfCareDB.hydrateInterval    = 300          -- new 5-min interval
+
+            SelfCare.RestartTimers()
+
+            -- Should start fresh (no After timer), not resume from stale nextDue
+            assert.equal(0, #C_Timer.GetAfterTimers())
+            assert.equal(3, #C_Timer.GetTickers())
+        end)
     end)
 
 end)

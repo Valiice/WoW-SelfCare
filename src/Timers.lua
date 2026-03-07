@@ -102,6 +102,7 @@ end
 --- Stop and restart all timers (e.g., after manually editing SelfCareDB).
 function SelfCare.RestartTimers()
     SelfCare.StopAllTimers()
+    SelfCareDB.nextDue = {}  -- clear so settings changes start fresh, not mid-old-cycle
     SelfCare.StartAllTimers()
     SelfCare.Print("Timers restarted.")
 end
