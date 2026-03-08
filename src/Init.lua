@@ -50,12 +50,14 @@ addonFrame:SetScript("OnEvent", function(self, event, arg1)
         SelfCare.BuildSettingsPanel()
 
     elseif event == "PLAYER_LOGIN" then
+        SelfCare.UpdateAFKState()
         SelfCare.StartAllTimers()
 
     elseif event == "PLAYER_REGEN_ENABLED" or event == "CINEMATIC_STOP" then
         SelfCare.FlushPending()
 
     elseif event == "PLAYER_FLAGS_CHANGED" then
+        SelfCare.UpdateAFKState()
         SelfCare.FlushPending()
     end
 end)
@@ -80,6 +82,11 @@ SlashCmdList["SELFCARE"] = function(msg)
 
     if cmd == "debug" then
         SelfCare.PrintDebug()
+        return
+    end
+
+    if InCombatLockdown() then
+        SelfCare.Print("Cannot open settings during combat.")
         return
     end
 

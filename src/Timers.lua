@@ -8,6 +8,7 @@
 local timers        = {}  -- active C_Timer handles, keyed by alert.key
 local pendingAlerts = {}  -- alerts queued while in combat / cutscene
 local lastFired     = {}  -- last fire timestamp per alert key (in-memory, resets on reload)
+local playerIsAFK   = false  -- cached; updated via SelfCare.UpdateAFKState()
 
 local function CancelTimer(key)
     if timers[key] then
@@ -19,7 +20,7 @@ end
 local function IsBlocked()
     if SelfCareDB.disableInCombat   and InCombatLockdown()                      then return true end
     if SelfCareDB.disableInCutscene and (MovieFrame and MovieFrame:IsShown())    then return true end
-    if SelfCareDB.disableWhenAFK    and UnitIsAFK("player")                      then return true end
+    if SelfCareDB.disableWhenAFK    and playerIsAFK                               then return true end
     return false
 end
 
@@ -110,6 +111,17 @@ function SelfCare.StopAllTimers()
     for key in pairs(timers) do
         CancelTimer(key)
     end
+end
+
+--- Update the cached AFK state. Call from PLAYER_FLAGS_CHANGED to avoid
+--- calling UnitIsAFK() inside combat-transition callbacks, which can return
+--- a tainted "secret boolean" that WoW blocks from boolean evaluation.
+function SelfCare.UpdateAFKState()
+    local afk = UnitIsAFK("player")
+    -- Use equality comparisons (not a boolean test) to produce a clean Lua
+    -- boolean. Handles both real WoW (nil = not AFK, true = AFK) and the
+    -- test stub (false = not AFK, true = AFK).
+    playerIsAFK = (afk ~= nil and afk ~= false)
 end
 
 --- Show any queued alerts now that we are out of a blocked state.

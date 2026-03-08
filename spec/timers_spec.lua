@@ -204,6 +204,7 @@ describe("Timers", function()
     describe("AFK deferral", function()
         it("queues alert when AFK and disableWhenAFK is true", function()
             _G._isAFK = true
+            SelfCare.UpdateAFKState()
             SelfCareDB.disableWhenAFK = true
 
             SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
@@ -214,6 +215,7 @@ describe("Timers", function()
 
         it("fires immediately when disableWhenAFK is false, even if AFK", function()
             _G._isAFK = true
+            SelfCare.UpdateAFKState()
             SelfCareDB.disableWhenAFK = false
 
             SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
@@ -224,6 +226,7 @@ describe("Timers", function()
 
         it("flushes queued alerts when un-AFK", function()
             _G._isAFK = true
+            SelfCare.UpdateAFKState()
             SelfCareDB.disableWhenAFK = true
 
             SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
@@ -231,6 +234,7 @@ describe("Timers", function()
             assert.equal(0, #showNotifCalls)
 
             _G._isAFK = false
+            SelfCare.UpdateAFKState()
             SelfCare.FlushPending()
             assert.equal(1, #showNotifCalls)
         end)
@@ -286,12 +290,14 @@ describe("Timers", function()
         it("updates nextDue when flushing a pending alert", function()
             _G._now = 1000
             _G._isAFK = true
+            SelfCare.UpdateAFKState()
             SelfCareDB.disableWhenAFK = true
 
             SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
             C_Timer.GetTickers()[1]:Fire()  -- queued while AFK
 
             _G._isAFK = false
+            SelfCare.UpdateAFKState()
             SelfCare.FlushPending()
 
             local expected = 1000 + SelfCareDB.hydrateInterval
@@ -301,6 +307,7 @@ describe("Timers", function()
         it("does not cancel the original ticker or create new timers after flushing", function()
             _G._now = 1000
             _G._isAFK = true
+            SelfCare.UpdateAFKState()
             SelfCareDB.disableWhenAFK = true
 
             SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
@@ -308,6 +315,7 @@ describe("Timers", function()
             oldTicker:Fire()  -- queued while AFK
 
             _G._isAFK = false
+            SelfCare.UpdateAFKState()
             C_Timer.Reset()  -- isolate what FlushPending creates
             SelfCare.FlushPending()
 
