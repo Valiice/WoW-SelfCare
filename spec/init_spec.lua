@@ -58,6 +58,17 @@ describe("Init", function()
 
     -- -------------------------------------------------------------------------
     describe("PLAYER_LOGIN event", function()
+        it("calls UpdateAFKState", function()
+            SelfCareAddonFrame:_FireEvent("ADDON_LOADED", "SelfCare")
+
+            local called = false
+            SelfCare.UpdateAFKState  = function() called = true end
+            SelfCare.StartAllTimers  = function() end  -- prevent SelfCareDB access
+
+            SelfCareAddonFrame:_FireEvent("PLAYER_LOGIN")
+            assert.is_true(called)
+        end)
+
         it("calls StartAllTimers", function()
             -- First fire ADDON_LOADED so SelfCareDB is set up
             SelfCareAddonFrame:_FireEvent("ADDON_LOADED", "SelfCare")
@@ -93,6 +104,26 @@ describe("Init", function()
     end)
 
     -- -------------------------------------------------------------------------
+    describe("PLAYER_FLAGS_CHANGED event", function()
+        it("calls UpdateAFKState", function()
+            local called = false
+            SelfCare.UpdateAFKState = function() called = true end
+            SelfCare.FlushPending   = function() end  -- prevent SelfCareDB access
+
+            SelfCareAddonFrame:_FireEvent("PLAYER_FLAGS_CHANGED")
+            assert.is_true(called)
+        end)
+
+        it("calls FlushPending", function()
+            local called = false
+            SelfCare.FlushPending = function() called = true end
+
+            SelfCareAddonFrame:_FireEvent("PLAYER_FLAGS_CHANGED")
+            assert.is_true(called)
+        end)
+    end)
+
+    -- -------------------------------------------------------------------------
     describe("slash command", function()
         before_each(function()
             -- ADDON_LOADED must fire first to set up SelfCare.Category
@@ -105,6 +136,26 @@ describe("Init", function()
 
             SlashCmdList["SELFCARE"]("")
             assert.is_true(opened)
+        end)
+
+        it("/selfcare prints a message instead of opening settings during combat", function()
+            _G._inCombat = true
+            local printed = nil
+            SelfCare.Print = function(msg) printed = msg end
+
+            SlashCmdList["SELFCARE"]("")
+            assert.is_not_nil(printed)
+            assert.truthy(printed:find("combat"))
+        end)
+
+        it("/selfcare does not call OpenToCategory during combat", function()
+            _G._inCombat = true
+            local opened = false
+            Settings.OpenToCategory = function() opened = true end
+            SelfCare.Print = function() end  -- suppress output
+
+            SlashCmdList["SELFCARE"]("")
+            assert.is_false(opened)
         end)
 
         it("/selfcare test calls TestAllAlerts", function()
