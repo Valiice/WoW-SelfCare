@@ -58,6 +58,17 @@ describe("Init", function()
 
     -- -------------------------------------------------------------------------
     describe("PLAYER_LOGIN event", function()
+        it("calls UpdateAFKState", function()
+            SelfCareAddonFrame:_FireEvent("ADDON_LOADED", "SelfCare")
+
+            local called = false
+            SelfCare.UpdateAFKState  = function() called = true end
+            SelfCare.StartAllTimers  = function() end  -- prevent SelfCareDB access
+
+            SelfCareAddonFrame:_FireEvent("PLAYER_LOGIN")
+            assert.is_true(called)
+        end)
+
         it("calls StartAllTimers", function()
             -- First fire ADDON_LOADED so SelfCareDB is set up
             SelfCareAddonFrame:_FireEvent("ADDON_LOADED", "SelfCare")

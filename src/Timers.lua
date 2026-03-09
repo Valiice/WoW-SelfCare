@@ -113,9 +113,9 @@ function SelfCare.StopAllTimers()
     end
 end
 
---- Update the cached AFK state. Call from PLAYER_FLAGS_CHANGED to avoid
---- calling UnitIsAFK() inside combat-transition callbacks, which can return
---- a tainted "secret boolean" that WoW blocks from boolean evaluation.
+--- Update the cached AFK state. Call from PLAYER_FLAGS_CHANGED and PLAYER_LOGIN
+--- to avoid calling UnitIsAFK() inside combat-transition callbacks, which can
+--- return a tainted "secret boolean" that WoW blocks from boolean evaluation.
 function SelfCare.UpdateAFKState()
     local afk = UnitIsAFK("player")
     -- Use equality comparisons (not a boolean test) to produce a clean Lua
