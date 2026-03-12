@@ -62,24 +62,12 @@ function SelfCare.StartTimer(alert)
 
     local key = alert.key  -- capture for closures
 
-    -- Corrupt / missing timestamp → start fresh
-    if not remaining or remaining > interval then
+    -- No/corrupt timestamp, or overdue → start fresh (never fire immediately on login)
+    if not remaining or remaining > interval or remaining <= 0 then
         SelfCareDB.nextDue[key] = time() + interval
         local handle
         handle = C_Timer.NewTicker(interval, function()
             if timers[key] ~= handle then return end  -- stale: superseded by Cancel+restart
-            FireAlert(alert)
-        end)
-        timers[key] = handle
-        return
-    end
-
-    -- Overdue → fire immediately, then resume normal cadence
-    if remaining <= 0 then
-        FireAlert(alert)
-        local handle
-        handle = C_Timer.NewTicker(interval, function()
-            if timers[key] ~= handle then return end
             FireAlert(alert)
         end)
         timers[key] = handle
