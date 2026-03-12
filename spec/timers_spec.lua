@@ -350,14 +350,16 @@ describe("Timers", function()
             assert.equal(0, #C_Timer.GetTickers())
         end)
 
-        it("fires immediately and starts full ticker when nextDue is overdue", function()
+        it("starts fresh full ticker when nextDue is overdue (does NOT fire immediately on login)", function()
             _G._now = 2000
             SelfCareDB.nextDue["hydrate"] = 1000  -- 1000 seconds in the past
             SelfCare.StartTimer(SelfCare.FindAlertByKey("hydrate"))
 
-            assert.equal(1, #showNotifCalls)
+            assert.equal(0, #showNotifCalls)  -- no immediate fire
+            assert.equal(0, #C_Timer.GetAfterTimers())
             assert.equal(1, #C_Timer.GetTickers())
             assert.equal(SelfCareDB.hydrateInterval, C_Timer.GetTickers()[1].interval)
+            assert.equal(2000 + SelfCareDB.hydrateInterval, SelfCareDB.nextDue["hydrate"])
         end)
 
         it("starts fresh full ticker when nextDue is corrupt (> interval)", function()
