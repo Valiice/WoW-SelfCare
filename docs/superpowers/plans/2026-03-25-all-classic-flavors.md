@@ -1,74 +1,51 @@
--- =============================================================================
--- spec/settings_spec.lua
--- Unit tests for src/Settings.lua: panel construction, Classic Era compat.
--- =============================================================================
+# All-Classic-Flavors Support Implementation Plan
 
-dofile("spec/stubs/wow_api.lua")
-dofile("spec/helpers/load_addon.lua")
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-describe("Settings", function()
+**Goal:** Add CurseForge-compatible TOC files for BCC Anniversary, WotLK Classic, Cataclysm Classic, and MoP Classic so the addon appears in all flavor-specific searches.
 
-    before_each(function()
-        WowStubs_Reset()
-        C_Timer.Reset()
-        LoadAddon()
-        SelfCare.ApplyDefaults()
-    end)
+**Architecture:** Four new TOC files (`SelfCare_TBC.toc`, `SelfCare_Wrath.toc`, `SelfCare_Cata.toc`, `SelfCare_Mists.toc`), each identical to `SelfCare_Vanilla.toc` except for `## Interface:`. Eight new tests in `spec/settings_spec.lua` (two per flavor). No Lua changes.
 
-    describe("BuildSettingsPanel", function()
-        it("creates SelfCare.Category on first call", function()
-            SelfCare.Category = nil
-            SelfCare.BuildSettingsPanel()
-            assert.is_not_nil(SelfCare.Category)
-        end)
+**Tech Stack:** Lua 5.1, busted (test framework), WoW TOC format
 
-        it("is idempotent — second call does not overwrite Category", function()
-            SelfCare.Category = nil
-            SelfCare.BuildSettingsPanel()
-            local first = SelfCare.Category
-            SelfCare.BuildSettingsPanel()
-            assert.equal(first, SelfCare.Category)
-        end)
+---
 
-        it("calls Settings.RegisterAddOnCategory", function()
-            local called = false
-            local orig = Settings.RegisterAddOnCategory
-            Settings.RegisterAddOnCategory = function(cat)
-                called = true
-                return orig(cat)
-            end
-            SelfCare.Category = nil
-            SelfCare.BuildSettingsPanel()
-            assert.is_true(called)
-        end)
-    end)
+## File Map
 
-    describe("Classic Era compatibility", function()
-        before_each(function()
-            WowStubs_Reset()
-            C_Timer.Reset()
-            -- Load addon first (needs retail globals), then simulate Classic
-            LoadAddon()
-            SelfCare.ApplyDefaults()
-            WowStubs_SimulateClassic()
-            SelfCare.Category = nil  -- force rebuild
-        end)
+| Action | File | Purpose |
+|---|---|---|
+| Modify | `spec/settings_spec.lua` | Hoist `extractFiles`, add 8 new tests (2 per flavor) |
+| Create | `SelfCare_TBC.toc` | CurseForge BCC Anniversary flavor |
+| Create | `SelfCare_Wrath.toc` | CurseForge WotLK Classic flavor |
+| Create | `SelfCare_Cata.toc` | CurseForge Cataclysm Classic flavor |
+| Create | `SelfCare_Mists.toc` | CurseForge MoP Classic flavor |
 
-        it("builds settings panel when MinimalSliderWithSteppersMixin is nil", function()
-            assert.has_no.errors(function()
-                SelfCare.BuildSettingsPanel()
-            end)
-            assert.is_not_nil(SelfCare.Category)
-        end)
+---
 
-        it("builds settings panel when CreateSettingsButtonInitializer is nil", function()
-            assert.has_no.errors(function()
-                SelfCare.BuildSettingsPanel()
-            end)
-            assert.is_not_nil(SelfCare.Category)
-        end)
-    end)
+## Task 1: Create feature branch
 
+**Files:** none
+
+- [ ] **Step 1: Create and switch to feature branch**
+
+```bash
+git checkout -b feat/all-classic-flavors
+```
+
+Expected: `Switched to a new branch 'feat/all-classic-flavors'`
+
+---
+
+## Task 2: Write failing tests
+
+**Files:**
+- Modify: `spec/settings_spec.lua` (the `describe("TOC files", ...)` block, currently lines 72–96)
+
+The current `describe("TOC files", ...)` block has `extractFiles` defined inline inside one `it()`. Hoist it to a shared local, add `#retail > 0` guard to the Vanilla file-list test, then add eight new `it()` blocks.
+
+Replace the entire `describe("TOC files", ...)` block with:
+
+```lua
     describe("TOC files", function()
         local function extractFiles(path)
             local files = {}
@@ -90,7 +67,7 @@ describe("Settings", function()
         end)
 
         it("SelfCare_Vanilla.toc lists the same source files as SelfCare.toc", function()
-            local retail  = extractFiles("SelfCare.toc")
+            local retail = extractFiles("SelfCare.toc")
             assert.is_true(#retail > 0, "SelfCare.toc must have source files")
             local classic = extractFiles("SelfCare_Vanilla.toc")
             assert.same(retail, classic)
@@ -160,4 +137,80 @@ describe("Settings", function()
             assert.same(retail, mists)
         end)
     end)
-end)
+```
+
+- [ ] **Step 2: Run tests — expect 8 failures**
+
+```bash
+bash scripts/run-tests.sh --tap
+```
+
+Expected: 8 new failures like `SelfCare_TBC.toc must exist` etc. All pre-existing tests still pass.
+
+---
+
+## Task 3: Create the four TOC files
+
+**Files:**
+- Create: `SelfCare_TBC.toc`
+- Create: `SelfCare_Wrath.toc`
+- Create: `SelfCare_Cata.toc`
+- Create: `SelfCare_Mists.toc`
+
+Each is identical to `SelfCare_Vanilla.toc` with only `## Interface:` changed.
+
+- [ ] **Step 1: Create `SelfCare_TBC.toc`**
+
+```
+## Interface: 20505
+## Title: SelfCare
+## Notes: Reminds you to hydrate, check your posture, and take breaks.
+## Author: ValentinClaes
+## Version: 1.0.0
+## SavedVariables: SelfCareDB
+## X-Curse-Project-ID: 1478575
+
+src/Core.lua
+src/Notifications.lua
+src/Timers.lua
+src/Settings.lua
+src/Init.lua
+```
+
+- [ ] **Step 2: Create `SelfCare_Wrath.toc`**
+
+Same as above with `## Interface: 30403`.
+
+- [ ] **Step 3: Create `SelfCare_Cata.toc`**
+
+Same as above with `## Interface: 40402`.
+
+- [ ] **Step 4: Create `SelfCare_Mists.toc`**
+
+Same as above with `## Interface: 50503`.
+
+- [ ] **Step 5: Run tests — all should pass**
+
+```bash
+bash scripts/run-tests.sh --tap
+```
+
+Expected: all tests pass, total count increases by 8 (from 112 to 120).
+
+---
+
+## Task 4: Commit and push
+
+- [ ] **Step 1: Commit with /quick-commit**
+
+Stage and commit: `spec/settings_spec.lua`, `SelfCare_TBC.toc`, `SelfCare_Wrath.toc`, `SelfCare_Cata.toc`, `SelfCare_Mists.toc`, `docs/superpowers/specs/2026-03-25-all-classic-flavors-design.md`, `docs/superpowers/plans/2026-03-25-all-classic-flavors.md`
+
+Use `/quick-commit`.
+
+- [ ] **Step 2: Push branch and open PR**
+
+```bash
+git push -u origin feat/all-classic-flavors
+```
+
+Then open a PR targeting `master`.
