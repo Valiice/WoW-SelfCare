@@ -275,3 +275,9 @@ end
 function WowStubs_SetDB(value)
     rawset(_G, "SelfCareDB", value)
 end
+
+--- Simulate Classic Era environment by removing globals that may not exist.
+function WowStubs_SimulateClassic()
+    rawset(_G, "MinimalSliderWithSteppersMixin", nil)
+    rawset(_G, "CreateSettingsButtonInitializer", nil)
+end
