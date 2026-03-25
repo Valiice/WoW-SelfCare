@@ -5,6 +5,12 @@
 -- SelfCare.Category so Init.lua can read its ID for OpenToCategory.
 -- =============================================================================
 
+-- Fallback for Classic Era where this mixin may not exist
+local SLIDER_LABEL_RIGHT = MinimalSliderWithSteppersMixin
+    and MinimalSliderWithSteppersMixin.Label
+    and MinimalSliderWithSteppersMixin.Label.Right
+    or 1  -- the underlying enum value
+
 function SelfCare.BuildSettingsPanel()
     if SelfCare.Category then return end  -- already built
 
@@ -68,7 +74,7 @@ function SelfCare.BuildSettingsPanel()
 
         local sliderOptions = Settings.CreateSliderOptions(5, 300, 5)
         sliderOptions:SetLabelFormatter(
-            MinimalSliderWithSteppersMixin.Label.Right,
+            SLIDER_LABEL_RIGHT,
             function(value)
                 if value >= 60 then
                     return string.format("%dh %dm", math.floor(value / 60), value % 60)
@@ -144,7 +150,7 @@ function SelfCare.BuildSettingsPanel()
     )
     local delayOptions = Settings.CreateSliderOptions(3, 60, 1)
     delayOptions:SetLabelFormatter(
-        MinimalSliderWithSteppersMixin.Label.Right,
+        SLIDER_LABEL_RIGHT,
         function(value) return value .. "s" end
     )
     delayInitializer = Settings.CreateSlider(category, delaySettingObj, delayOptions,
@@ -185,24 +191,26 @@ function SelfCare.BuildSettingsPanel()
     end
 
     -- -----------------------------------------------------------------------
-    -- TEST BUTTON  (CreateSettingsButtonInitializer is a Blizzard global)
-    -- Args: labelText, buttonText, onClick, tooltipText, isEnabled
+    -- TEST / RESET BUTTONS  (CreateSettingsButtonInitializer is a Blizzard
+    -- global that may not exist in all Classic builds)
     -- -----------------------------------------------------------------------
-    layout:AddInitializer(CreateSettingsButtonInitializer(
-        "Preview your reminders",
-        "Test All Alerts",
-        SelfCare.TestAllAlerts,
-        "Fire all three reminders immediately to preview how they look.",
-        true
-    ))
+    if CreateSettingsButtonInitializer then
+        layout:AddInitializer(CreateSettingsButtonInitializer(
+            "Preview your reminders",
+            "Test All Alerts",
+            SelfCare.TestAllAlerts,
+            "Fire all three reminders immediately to preview how they look.",
+            true
+        ))
 
-    layout:AddInitializer(CreateSettingsButtonInitializer(
-        "Timers feeling off or out of sync?",
-        "Reset Timers",
-        SelfCare.ResetTimers,
-        "Restarts all timers from now using your current interval settings. Does not change any settings.",
-        true
-    ))
+        layout:AddInitializer(CreateSettingsButtonInitializer(
+            "Timers feeling off or out of sync?",
+            "Reset Timers",
+            SelfCare.ResetTimers,
+            "Restarts all timers from now using your current interval settings. Does not change any settings.",
+            true
+        ))
+    end
 
     -- Register and expose the category
     Settings.RegisterAddOnCategory(category)
