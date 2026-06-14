@@ -70,4 +70,26 @@ describe("interface_bump", function()
         end)
     end)
 
+    describe("parse_live", function()
+        local LIVE_TEXT = table.concat({
+            "wow 12.0.5.67823",
+            "wow_classic 5.5.4.68077",
+            "wow_anniversary 2.5.5.68101",
+            "wow_classic_era 1.15.8.67156",
+            "wowxptr 12.0.7.67808",        -- PTR: must be ignored
+            "wow_classic_beta 5.5.9.99999", -- beta: must be ignored
+        }, "\n")
+
+        it("keeps only whitelisted products as interface numbers", function()
+            local live = bump.parse_live(LIVE_TEXT)
+            table.sort(live)
+            assert.same({ 11508, 20505, 50504, 120005 }, live)
+        end)
+
+        it("ignores blank lines and malformed entries", function()
+            local live = bump.parse_live("\nwow 12.0.5.1\n\ngarbage\nwow bad-version\n")
+            assert.same({ 120005 }, live)
+        end)
+    end)
+
 end)

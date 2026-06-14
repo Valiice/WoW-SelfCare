@@ -51,4 +51,16 @@ function M.set_version_line(toc_text, new_version)
     return (toc_text:gsub("(##%s*Version:%s*)[^\r\n]+", "%1" .. new_version, 1))
 end
 
+function M.parse_live(text)
+    local result = {}
+    for line in (text .. "\n"):gmatch("([^\r\n]*)\r?\n") do
+        local product, version = line:match("^(%S+)%s+(%S+)$")
+        if product and M.WHITELIST[product] then
+            local iface = M.compute_interface(version)
+            if iface then result[#result + 1] = iface end
+        end
+    end
+    return result
+end
+
 return M
