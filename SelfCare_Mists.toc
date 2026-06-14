@@ -1,8 +1,8 @@
-## Interface: 50503
+## Interface: 50504
 ## Title: SelfCare
 ## Notes: Reminds you to hydrate, check your posture, and take breaks.
 ## Author: ValentinClaes
-## Version: 1.0.0
+## Version: 1.0.1
 ## SavedVariables: SelfCareDB
 ## X-Curse-Project-ID: 1478575
 
