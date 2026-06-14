@@ -43,6 +43,38 @@ describe("interface_bump", function()
         end)
     end)
 
+    describe("is_valid_version", function()
+        it("accepts well-formed X.Y.Z versions", function()
+            assert.is_true(bump.is_valid_version("1.1.0"))
+            assert.is_true(bump.is_valid_version("12.0.5"))
+            assert.is_true(bump.is_valid_version("0.0.0"))
+            assert.is_true(bump.is_valid_version("100.200.300"))
+        end)
+
+        it("rejects versions with wrong segment count", function()
+            assert.is_false(bump.is_valid_version("1.1"))
+            assert.is_false(bump.is_valid_version("1.1.0.0"))
+        end)
+
+        it("rejects versions with non-digit segments", function()
+            assert.is_false(bump.is_valid_version("1.1.x"))
+            assert.is_false(bump.is_valid_version("1.x.0"))
+        end)
+
+        it("rejects empty string", function()
+            assert.is_false(bump.is_valid_version(""))
+        end)
+
+        it("rejects nil", function()
+            assert.is_false(bump.is_valid_version(nil))
+        end)
+
+        it("rejects strings with leading or trailing whitespace", function()
+            assert.is_false(bump.is_valid_version(" 1.1.0"))
+            assert.is_false(bump.is_valid_version("1.1.0 "))
+        end)
+    end)
+
     local SAMPLE_TOC = table.concat({
         "## Interface: 120001",
         "## Title: SelfCare",

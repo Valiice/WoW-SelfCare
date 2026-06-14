@@ -65,6 +65,11 @@ function M.parse_live(text)
     return result
 end
 
+function M.is_valid_version(v)
+    if type(v) ~= "string" then return false end
+    return v:match("^%d+%.%d+%.%d+$") ~= nil
+end
+
 function M.plan_bumps(current, live)
     -- Highest live interface per major version.
     local best_by_major = {}
