@@ -36,6 +36,11 @@ describe("interface_bump", function()
             assert.equal("1.0.10", bump.bump_patch("1.0.9"))
             assert.equal("2.3.5", bump.bump_patch("2.3.4"))
         end)
+
+        it("returns nil for unparseable input instead of throwing", function()
+            assert.is_nil(bump.bump_patch("1.0"))
+            assert.is_nil(bump.bump_patch("not-a-version"))
+        end)
     end)
 
     local SAMPLE_TOC = table.concat({
@@ -53,6 +58,10 @@ describe("interface_bump", function()
         end)
         it("reads the version string", function()
             assert.equal("1.0.0", bump.read_version(SAMPLE_TOC))
+        end)
+        it("trims trailing whitespace from the version line", function()
+            local toc = "## Interface: 120001\n## Version: 1.0.0   \n"
+            assert.equal("1.0.0", bump.read_version(toc))
         end)
     end)
 

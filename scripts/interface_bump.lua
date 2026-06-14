@@ -31,6 +31,7 @@ end
 -- "1.0.0" -> "1.0.1"
 function M.bump_patch(version)
     local major, minor, patch = version:match("^(%d+)%.(%d+)%.(%d+)$")
+    if not major then return nil end
     return string.format("%d.%d.%d", tonumber(major), tonumber(minor), tonumber(patch) + 1)
 end
 
@@ -40,7 +41,8 @@ function M.read_interface(toc_text)
 end
 
 function M.read_version(toc_text)
-    return toc_text:match("##%s*Version:%s*([^\r\n]+)")
+    local v = toc_text:match("##%s*Version:%s*([^\r\n]+)")
+    return v and (v:gsub("%s+$", "")) or nil
 end
 
 function M.set_interface_line(toc_text, new_interface)
