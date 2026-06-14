@@ -45,8 +45,11 @@ Interface versions are bumped automatically. `.github/workflows/bump-interface.y
 runs daily (and on manual `workflow_dispatch` — dispatch it from `master`), reads
 the latest live build per flavor from `https://wago.tools/api/builds`, and bumps any
 TOC whose major version matches a live product and is behind (forward-only; PTR/beta
-excluded via a product whitelist). On a change it patch-bumps `## Version:` across all
-TOCs, commits to `master`, and pushes a `vX.Y.Z` tag that triggers `release.yml`.
+excluded via a product whitelist). On a change it sets `## Version:` across all TOCs to
+a patch-bump of **the latest `v*` git tag** (the real release history — the TOC
+`## Version:` line is display-only and can drift), commits to `master`, and pushes a
+`vX.Y.Z` tag that triggers `release.yml`. Deriving the base from the tag (not the TOC)
+ensures the new version always advances past the latest published release.
 
 The pushed tag uses the `RELEASE_PAT` secret because a tag pushed by the default
 `GITHUB_TOKEN` would not trigger `release.yml`. `RELEASE_PAT` can be a fine-grained PAT

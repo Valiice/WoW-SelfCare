@@ -19,6 +19,8 @@ jobs:
         with:
           # PAT so the pushed tag triggers release.yml (GITHUB_TOKEN would not).
           token: ${{ secrets.RELEASE_PAT }}
+          # Full history + tags so tag-collision is detected before pushing.
+          fetch-depth: 0
 
       - name: Set up Lua
         uses: hishamhm/gh-actions-lua@master
@@ -45,4 +47,7 @@ jobs:
           git add SelfCare*.toc
           git commit -m "chore: set version v$INPUT_VERSION"
           git tag "v$INPUT_VERSION"
-          git push origin HEAD --follow-tags
+          # Push commit and tag explicitly — `--follow-tags` skips lightweight tags,
+          # which would leave the tag unpushed and release.yml never triggered.
+          git push origin HEAD
+          git push origin "v$INPUT_VERSION"
