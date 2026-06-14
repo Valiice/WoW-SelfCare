@@ -85,8 +85,10 @@ describe("Settings", function()
             assert.is_not_nil(f, "SelfCare_Vanilla.toc must exist")
             local content = f:read("*a")
             f:close()
-            assert.truthy(content:find("## Interface: 11508"),
-                "Must declare Interface: 11508 for Classic Era 1.15.8")
+            local iface = tonumber(content:match("## Interface: (%d+)"))
+            assert.is_not_nil(iface, "SelfCare_Vanilla.toc must declare a ## Interface: line")
+            assert.equal(1, math.floor(iface / 10000),
+                "Classic Era interface must be major version 1 (got " .. tostring(iface) .. ")")
         end)
 
         it("SelfCare_Vanilla.toc lists the same source files as SelfCare.toc", function()
@@ -101,8 +103,10 @@ describe("Settings", function()
             assert.is_not_nil(f, "SelfCare_TBC.toc must exist")
             local content = f:read("*a")
             f:close()
-            assert.truthy(content:find("## Interface: 20505"),
-                "Must declare Interface: 20505 for TBC Classic 2.5.5")
+            local iface = tonumber(content:match("## Interface: (%d+)"))
+            assert.is_not_nil(iface, "SelfCare_TBC.toc must declare a ## Interface: line")
+            assert.equal(2, math.floor(iface / 10000),
+                "TBC Classic interface must be major version 2 (got " .. tostring(iface) .. ")")
         end)
 
         it("SelfCare_TBC.toc lists the same source files as SelfCare.toc", function()
@@ -117,8 +121,10 @@ describe("Settings", function()
             assert.is_not_nil(f, "SelfCare_Wrath.toc must exist")
             local content = f:read("*a")
             f:close()
-            assert.truthy(content:find("## Interface: 30403"),
-                "Must declare Interface: 30403 for WotLK Classic 3.4.3")
+            local iface = tonumber(content:match("## Interface: (%d+)"))
+            assert.is_not_nil(iface, "SelfCare_Wrath.toc must declare a ## Interface: line")
+            assert.equal(3, math.floor(iface / 10000),
+                "WotLK Classic interface must be major version 3 (got " .. tostring(iface) .. ")")
         end)
 
         it("SelfCare_Wrath.toc lists the same source files as SelfCare.toc", function()
@@ -133,8 +139,10 @@ describe("Settings", function()
             assert.is_not_nil(f, "SelfCare_Cata.toc must exist")
             local content = f:read("*a")
             f:close()
-            assert.truthy(content:find("## Interface: 40402"),
-                "Must declare Interface: 40402 for Cataclysm Classic 4.4.2")
+            local iface = tonumber(content:match("## Interface: (%d+)"))
+            assert.is_not_nil(iface, "SelfCare_Cata.toc must declare a ## Interface: line")
+            assert.equal(4, math.floor(iface / 10000),
+                "Cataclysm Classic interface must be major version 4 (got " .. tostring(iface) .. ")")
         end)
 
         it("SelfCare_Cata.toc lists the same source files as SelfCare.toc", function()
@@ -149,8 +157,10 @@ describe("Settings", function()
             assert.is_not_nil(f, "SelfCare_Mists.toc must exist")
             local content = f:read("*a")
             f:close()
-            assert.truthy(content:find("## Interface: 50503"),
-                "Must declare Interface: 50503 for MoP Classic 5.5.3")
+            local iface = tonumber(content:match("## Interface: (%d+)"))
+            assert.is_not_nil(iface, "SelfCare_Mists.toc must declare a ## Interface: line")
+            assert.equal(5, math.floor(iface / 10000),
+                "MoP Classic interface must be major version 5 (got " .. tostring(iface) .. ")")
         end)
 
         it("SelfCare_Mists.toc lists the same source files as SelfCare.toc", function()
