@@ -54,6 +54,12 @@ The pushed tag uses the `RELEASE_PAT` secret because a tag pushed by the default
 repo is public). Logic lives in `scripts/interface_bump.lua` (pure, unit-tested in
 `spec/interface_bump_spec.lua`); `scripts/bump_interface_cli.lua` is the I/O wrapper.
 
+For a **manual** release at a chosen version (e.g. a feature bump `1.0.x` → `1.1.0`),
+run `.github/workflows/set-version.yml` (Actions → "Set version and release" → Run
+workflow, from `master`) and type the full `X.Y.Z`. It writes that version verbatim
+into all TOCs (`scripts/set_version_cli.lua`), commits, tags, and triggers `release.yml`.
+The daily auto-bump then continues patch-bumping from whatever you set.
+
 Flavors with no currently-live game build (e.g. Wrath, Cata today) stay frozen at their
 last interface number until a live progression (`wow_anniversary`) advances to match
 their major version.
