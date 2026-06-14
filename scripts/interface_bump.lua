@@ -63,4 +63,24 @@ function M.parse_live(text)
     return result
 end
 
+function M.plan_bumps(current, live)
+    -- Highest live interface per major version.
+    local best_by_major = {}
+    for _, iface in ipairs(live) do
+        local maj = M.major_of(iface)
+        if not best_by_major[maj] or iface > best_by_major[maj] then
+            best_by_major[maj] = iface
+        end
+    end
+
+    local bumps = {}
+    for _, toc in ipairs(current) do
+        local target = best_by_major[M.major_of(toc.interface)]
+        if target and target > toc.interface then
+            bumps[#bumps + 1] = { file = toc.file, from = toc.interface, to = target }
+        end
+    end
+    return bumps
+end
+
 return M

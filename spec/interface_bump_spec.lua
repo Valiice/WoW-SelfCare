@@ -92,4 +92,42 @@ describe("interface_bump", function()
         end)
     end)
 
+    describe("plan_bumps", function()
+        -- Mirrors the real repo state on 2026-06-14.
+        local CURRENT = {
+            { file = "SelfCare.toc",         interface = 120001 }, -- retail, stale
+            { file = "SelfCare_Mists.toc",   interface = 50503  }, -- MoP, stale
+            { file = "SelfCare_TBC.toc",     interface = 20505  }, -- TBC, current
+            { file = "SelfCare_Vanilla.toc", interface = 11508  }, -- Era, current
+            { file = "SelfCare_Wrath.toc",   interface = 30403  }, -- no live major-3 product
+            { file = "SelfCare_Cata.toc",    interface = 40402  }, -- no live major-4 product
+        }
+        local LIVE = { 120005, 50504, 20505, 11508 }
+
+        it("bumps only stale TOCs whose major matches a live product", function()
+            local bumps = bump.plan_bumps(CURRENT, LIVE)
+            local by_file = {}
+            for _, b in ipairs(bumps) do by_file[b.file] = b.to end
+            assert.equal(120005, by_file["SelfCare.toc"])
+            assert.equal(50504, by_file["SelfCare_Mists.toc"])
+            assert.is_nil(by_file["SelfCare_TBC.toc"])     -- already current
+            assert.is_nil(by_file["SelfCare_Vanilla.toc"]) -- already current
+            assert.is_nil(by_file["SelfCare_Wrath.toc"])   -- frozen, no live major 3
+            assert.is_nil(by_file["SelfCare_Cata.toc"])    -- frozen, no live major 4
+            assert.equal(2, #bumps)
+        end)
+
+        it("never downgrades (forward-only)", function()
+            local current = { { file = "X.toc", interface = 120009 } }
+            assert.same({}, bump.plan_bumps(current, { 120005 }))
+        end)
+
+        it("picks the max live interface when several share a major", function()
+            local current = { { file = "X.toc", interface = 120001 } }
+            local bumps = bump.plan_bumps(current, { 120003, 120005, 120002 })
+            assert.equal(1, #bumps)
+            assert.equal(120005, bumps[1].to)
+        end)
+    end)
+
 end)
