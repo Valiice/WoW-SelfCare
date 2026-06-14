@@ -38,4 +38,36 @@ describe("interface_bump", function()
         end)
     end)
 
+    local SAMPLE_TOC = table.concat({
+        "## Interface: 120001",
+        "## Title: SelfCare",
+        "## Version: 1.0.0",
+        "## SavedVariables: SelfCareDB",
+        "",
+        "src/Core.lua",
+    }, "\n")
+
+    describe("read_interface / read_version", function()
+        it("reads the interface number", function()
+            assert.equal(120001, bump.read_interface(SAMPLE_TOC))
+        end)
+        it("reads the version string", function()
+            assert.equal("1.0.0", bump.read_version(SAMPLE_TOC))
+        end)
+    end)
+
+    describe("set_interface_line / set_version_line", function()
+        it("rewrites only the interface line", function()
+            local out = bump.set_interface_line(SAMPLE_TOC, 120005)
+            assert.equal(120005, bump.read_interface(out))
+            assert.equal("1.0.0", bump.read_version(out))      -- untouched
+            assert.is_truthy(out:find("## Title: SelfCare", 1, true))
+        end)
+        it("rewrites only the version line", function()
+            local out = bump.set_version_line(SAMPLE_TOC, "1.0.1")
+            assert.equal("1.0.1", bump.read_version(out))
+            assert.equal(120001, bump.read_interface(out))     -- untouched
+        end)
+    end)
+
 end)

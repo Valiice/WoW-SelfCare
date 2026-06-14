@@ -34,4 +34,21 @@ function M.bump_patch(version)
     return string.format("%d.%d.%d", tonumber(major), tonumber(minor), tonumber(patch) + 1)
 end
 
+function M.read_interface(toc_text)
+    local n = toc_text:match("##%s*Interface:%s*(%d+)")
+    return n and tonumber(n) or nil
+end
+
+function M.read_version(toc_text)
+    return toc_text:match("##%s*Version:%s*([^\r\n]+)")
+end
+
+function M.set_interface_line(toc_text, new_interface)
+    return (toc_text:gsub("(##%s*Interface:%s*)%d+", "%1" .. new_interface, 1))
+end
+
+function M.set_version_line(toc_text, new_version)
+    return (toc_text:gsub("(##%s*Version:%s*)[^\r\n]+", "%1" .. new_version, 1))
+end
+
 return M
